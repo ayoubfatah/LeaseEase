@@ -13,14 +13,14 @@ import DesktopMenu from "./DesktopMenu";
 export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
-    <nav className="bg-purple-500 border-b border-purple-500">
+    <nav className="bg-slate-800 border-b border-slate-500">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-        <div className="relative flex h-20 items-center justify-between">
+        <div className="relative flex h-[70px] items-center justify-between">
           <div className="absolute inset-y-0 left-0 flex items-center md:hidden">
             <button
               type="button"
               id="mobile-dropdown-button"
-              className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="relative inline-flex items-center justify-center rounded-md p-2  hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset "
               aria-controls="mobile-menu"
               aria-expanded="false"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -28,11 +28,11 @@ export default function NavBar() {
               <span className="absolute -inset-0.5"></span>
               <span className="sr-only">Open main menu</span>
               <svg
-                className="block h-6 w-6 "
+                className="block h-6 w-6 text-white   "
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
-                stroke="currentColor"
+                stroke="white"
                 aria-hidden="true"
               >
                 <path
@@ -47,15 +47,15 @@ export default function NavBar() {
           <div className="flex flex-1 items-center justify-center md:items-stretch md:justify-start">
             <Link className="flex flex-shrink-0 items-center" href="/">
               <Image
-                height={40}
-                width={40}
-                className="h-10 w-auto"
+                height={20}
+                width={20}
+                className="h-auto w-auto"
                 src={logo}
-                alt="PropertyPulse"
+                alt="LeaseEase"
               />
 
               <span className="hidden md:block text-white text-2xl font-bold ml-2">
-                PropertyPulse
+                LeaseEase
               </span>
             </Link>
             {/* <!-- Desktop Menu Hidden below md screens --> */}

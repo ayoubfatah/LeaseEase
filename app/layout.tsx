@@ -1,6 +1,9 @@
 import React from "react";
 import "@/assets/styles/globals.css";
 import NavBar from "@/components/NavBar";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
+import theme from "@/assets/styles/theme";
+import { ThemeProvider } from "@mui/material/styles";
 
 export const metadata = {
   title: "LeaseEase",
@@ -15,7 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <NavBar />
+        <AppRouterCacheProvider>
+          <ThemeProvider theme={theme}>
+            <NavBar />
+          </ThemeProvider>
+        </AppRouterCacheProvider>
         <main>{children}</main>
       </body>
     </html>
