@@ -10,7 +10,18 @@ import ProfileDropDown from "./ProfileDropDown";
 import RightSideMenu from "./RightSideMenu";
 import Login from "./Login";
 import DesktopMenu from "./DesktopMenu";
+import { usePathname } from "next/navigation";
 export default function NavBar() {
+  const pathname = usePathname();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  let pages = [
+    { name: "Home", href: "/" },
+    { name: "Properties", href: "/properties" },
+  ];
+  if (isLoggedIn) {
+    pages = pages.concat([{ name: "Add Property", href: "/property/add" }]);
+  }
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <nav className="bg-slate-800 border-b border-slate-500">
@@ -60,16 +71,17 @@ export default function NavBar() {
             </Link>
             {/* <!-- Desktop Menu Hidden below md screens --> */}
 
-            <DesktopMenu />
+            <DesktopMenu pages={pages} pathname={pathname} />
           </div>
 
-          <Login />
-
+          {!isLoggedIn && <Login />}
           <RightSideMenu />
         </div>
       </div>
 
-      {isMobileMenuOpen && <MobileMenu />}
+      {isMobileMenuOpen && (
+        <MobileMenu isLoggedIn={isLoggedIn} pages={pages} pathname={pathname} />
+      )}
     </nav>
   );
 }
