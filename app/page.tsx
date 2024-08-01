@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import InfoBoxes from "@/components/InfoBoxes";
 
@@ -8,6 +9,7 @@ export default function HomePage() {
     <>
       <HeroSection />
       <InfoBoxes />
+      <Footer />
     </>
   );
 }
