@@ -27,7 +27,7 @@ export default function InfoBox({
       <span>
         <Link
           href={btnHref}
-          className={`inline-block   ${btnColor}  ${btnTextColor}  rounded-lg px-4 py-2 hover:opacity-75 transition-all duration-500 ease-linear `}
+          className={`inline-block   ${btnColor}  ${btnTextColor}  rounded-lg px-4 py-2 hover:opacity-90 transition-all duration-500 ease-linear `}
         >
           {btnText}
         </Link>
