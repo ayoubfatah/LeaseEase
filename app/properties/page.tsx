@@ -3,7 +3,7 @@ import React from "react";
 import SearchInput from "@/components/SearchInput";
 import PropertyCard from "@/components/PropertyCard";
 import { PropertyType } from "@/types/types";
-import { fetchProperties } from "@/utils/request";
+import { fetchProperties, fetchProperty } from "@/utils/request";
 
 export const metadata = {
   title: "LeaseEase | Properties",
@@ -12,6 +12,7 @@ export const metadata = {
 export default async function PropertiesPage() {
   const properties = await fetchProperties();
   // sort by date
+
   const sortedProperties = properties?.sort(
     (a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

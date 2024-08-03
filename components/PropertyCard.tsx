@@ -23,7 +23,6 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
     is_featured,
   } = property ?? {};
 
-  console.log(property);
   return (
     <div className="rounded-xl shadow-md relative  ">
       <div className="overflow-hidden h-[220px]">
