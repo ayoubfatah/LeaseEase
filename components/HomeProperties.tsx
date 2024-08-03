@@ -17,7 +17,7 @@ export default function HomeProperties() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {slicedProperties.map((prop) => (
-            <PropertyCard key={prop._id} property={prop} />
+            <PropertyCard key={prop.name} property={prop} />
           ))}
         </div>
       </div>

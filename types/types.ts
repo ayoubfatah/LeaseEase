@@ -18,7 +18,7 @@ type SellerInfoType = {
 };
 
 export type PropertyType = {
-  _id: string;
+  _id?: string;
   owner: string;
   name: string;
   type: string;

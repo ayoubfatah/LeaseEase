@@ -9,7 +9,6 @@ export default function FeaturedPropertyCard({
 }: {
   property: PropertyType;
 }) {
-  console.log(property);
   const {
     name,
     type,

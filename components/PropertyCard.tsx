@@ -5,7 +5,6 @@ import { FaBed, FaMoneyBill, FaRulerCombined, FaShower } from "react-icons/fa";
 import { FaLocationDot } from "react-icons/fa6";
 
 export default function PropertyCard({ property }: { property: PropertyType }) {
-  console.log(property);
   const {
     name,
     type,

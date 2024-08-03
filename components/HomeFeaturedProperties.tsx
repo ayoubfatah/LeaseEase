@@ -15,7 +15,7 @@ export default function HomeFeaturedProperties() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {featuredProperties.map((prop) => (
-            <FeaturedPropertyCard key={prop._id} property={prop} />
+            <FeaturedPropertyCard key={prop.name} property={prop} />
           ))}
         </div>
       </div>

@@ -1,9 +1,9 @@
 import React from "react";
 import properties from "@/properties.json";
-
+import connectedDb from "@/config/database";
 import SearchInput from "@/components/SearchInput";
 import PropertyCard from "@/components/PropertyCard";
-export default function PropertiesPage() {
+export default async function PropertiesPage() {
   return (
     <>
       <SearchInput />
@@ -15,7 +15,7 @@ export default function PropertiesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {properties.map((prop) => (
-                <PropertyCard key={prop._id} property={prop} />
+                <PropertyCard key={prop.name} property={prop} />
               ))}
             </div>
           )}
