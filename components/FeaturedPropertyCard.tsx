@@ -12,14 +12,13 @@ export default function FeaturedPropertyCard({
   const {
     name,
     type,
-    description,
+
     location,
     beds,
     baths,
     square_feet,
     rates,
     images,
-    is_featured,
   } = property ?? {};
 
   return (

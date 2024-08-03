@@ -1,52 +1,48 @@
 import { Schema, model, models } from "mongoose";
 
-const propertySchema = new Schema(
+const PropertySchema = new Schema(
   {
     owner: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     name: {
       type: String,
-      required: [true, "Name is required"],
+      required: true,
     },
     type: {
       type: String,
-      required: [true, "Type is required"],
+      required: true,
     },
     description: {
       type: String,
-      required: [true, "Description is required"],
     },
     location: {
       street: {
         type: String,
-        required: [true, "Street is required"],
       },
       city: {
         type: String,
-        required: [true, "City is required"],
       },
       state: {
         type: String,
-        required: [true, "State is required"],
       },
       zipcode: {
         type: String,
-        required: [true, "Zipcode is required"],
       },
     },
     beds: {
       type: Number,
-      required: [true, "Beds is required"],
+      required: true,
     },
     baths: {
       type: Number,
-      required: [true, "Baths is required"],
+      required: true,
     },
     square_feet: {
       type: Number,
-      required: [true, "Square Feet is required"],
+      required: true,
     },
     amenities: [
       {
@@ -67,21 +63,17 @@ const propertySchema = new Schema(
     seller_info: {
       name: {
         type: String,
-        required: [true, "Name is required"],
       },
       email: {
         type: String,
-        required: [true, "Email is required"],
       },
       phone: {
         type: String,
-        required: [true, "Phone is required"],
       },
     },
     images: [
       {
         type: String,
-        required: [true, "Image is required"],
       },
     ],
     is_featured: {
@@ -89,9 +81,11 @@ const propertySchema = new Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Property = models.Property || model("Property", propertySchema);
+const Property = models.Property || model("Property", PropertySchema);
 
 export default Property;

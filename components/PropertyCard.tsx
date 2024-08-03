@@ -1,11 +1,16 @@
+"use client";
 import { PropertyType } from "@/types/types";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { FaBed, FaMoneyBill, FaRulerCombined, FaShower } from "react-icons/fa";
 import { FaLocationDot } from "react-icons/fa6";
 
 export default function PropertyCard({ property }: { property: PropertyType }) {
+  const router = useRouter();
+
   const {
+    _id,
     name,
     type,
     description,
@@ -18,6 +23,7 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
     is_featured,
   } = property ?? {};
 
+  console.log(property);
   return (
     <div className="rounded-xl shadow-md relative  ">
       <div className="overflow-hidden h-[220px]">
@@ -88,7 +94,10 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
               {location.city}, {location.state}
             </span>
           </div>
-          <button className="h-[36px] bg-slate-800  border-slate-900 border ease-linear      text-white px-4 py-2 rounded-lg text-center text-sm">
+          <button
+            onClick={() => router.push(`/property/${_id}`)}
+            className="h-[36px] bg-slate-800  border-slate-900 border ease-linear      text-white px-4 py-2 rounded-lg text-center text-sm"
+          >
             Details
           </button>
         </div>

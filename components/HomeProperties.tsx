@@ -1,12 +1,13 @@
-"use client";
 import React from "react";
 import PropertyCard from "./PropertyCard";
 import { PropertyType } from "@/types/types";
-import properties from "@/properties.json";
+
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { fetchProperties } from "@/utils/request";
 
-export default function HomeProperties() {
+export default async function HomeProperties() {
+  const properties = await fetchProperties();
   const slicedProperties = properties?.slice(0, 3) ?? [];
 
   return (
@@ -16,7 +17,7 @@ export default function HomeProperties() {
           Recent Properties
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {slicedProperties.map((prop) => (
+          {slicedProperties.map((prop: PropertyType) => (
             <PropertyCard key={prop.name} property={prop} />
           ))}
         </div>
