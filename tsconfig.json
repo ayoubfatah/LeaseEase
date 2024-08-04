@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-
+    "types": ["@clerk/nextjs"],
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -24,6 +24,13 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/api/properties/route.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/api/properties/route.ts",
+    "app/middleware.ts."
+  ],
   "exclude": ["node_modules"]
 }

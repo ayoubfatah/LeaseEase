@@ -94,7 +94,7 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
             </span>
           </div>
           <button
-            onClick={() => router.push(`/property/${_id}`)}
+            onClick={() => router.push(`/properties/${_id}`)}
             className="h-[36px] bg-slate-800  border-slate-900 border ease-linear      text-white px-4 py-2 rounded-lg text-center text-sm"
           >
             Details

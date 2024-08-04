@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 export default function NavBar() {
   const pathname = usePathname();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   let pages = [
     { name: "Home", href: "/" },
     { name: "Properties", href: "/properties" },

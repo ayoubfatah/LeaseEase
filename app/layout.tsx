@@ -1,10 +1,16 @@
 import React from "react";
 import "@/assets/styles/globals.css";
 import NavBar from "@/components/NavBar";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
+
 import theme from "@/assets/styles/theme";
 import { ThemeProvider } from "@mui/material/styles";
-
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export default function RootLayout({
   children,
@@ -14,12 +20,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <NavBar />
-          </ThemeProvider>
-        </AppRouterCacheProvider>
-        <main>{children}</main>
+        <ClerkProvider>
+          <NavBar />
+          <header>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </header>
+
+          <main>{children}</main>
+        </ClerkProvider>
       </body>
     </html>
   );
