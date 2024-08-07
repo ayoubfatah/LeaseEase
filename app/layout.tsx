@@ -11,29 +11,27 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/nextjs";
+import { SessionProvider } from "next-auth/react";
+import AuthProvider from "@/components/AuthProvider";
 
+export const metadata = {
+  title: "Leaseease",
+  description: "Leaseease",
+};
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <ClerkProvider>
+    <AuthProvider>
+      <html lang="en">
+        <body>
           <NavBar />
-          <header>
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </header>
 
           <main>{children}</main>
-        </ClerkProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </AuthProvider>
   );
 }

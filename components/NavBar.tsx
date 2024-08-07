@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import logo from "@/public/images/logo-white.png";
 import Link from "next/link";
@@ -8,18 +8,37 @@ import { FaGoogle } from "react-icons/fa";
 import MobileMenu from "./MobileMenu";
 import ProfileDropDown from "./ProfileDropDown";
 import RightSideMenu from "./RightSideMenu";
+2;
 import Login from "./Login";
 import DesktopMenu from "./DesktopMenu";
 import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession, getProviders } from "next-auth/react";
+
 export default function NavBar() {
+  const [providers, setProviders] = useState<any>(null);
+
+  const { data: session } = useSession();
+  console.log("Session:", session);
+  useEffect(() => {
+    const setAuthProviders = async () => {
+      try {
+        const res = await getProviders();
+        setProviders(res);
+      } catch (error) {
+        console.error("Error fetching providers:", error);
+      }
+    };
+
+    setAuthProviders();
+  }, []);
+
   const pathname = usePathname();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   let pages = [
     { name: "Home", href: "/" },
     { name: "Properties", href: "/properties" },
   ];
-  if (isLoggedIn) {
+  if (session) {
     pages = pages.concat([{ name: "Add Property", href: "/property/add" }]);
   }
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -73,14 +92,18 @@ export default function NavBar() {
 
             <DesktopMenu pages={pages} pathname={pathname} />
           </div>
-
-          {!isLoggedIn && <Login />}
-          <RightSideMenu />
+          {!session && <Login providers={providers} />}
+          {session && <ProfileDropDown />}
         </div>
       </div>
 
       {isMobileMenuOpen && (
-        <MobileMenu isLoggedIn={isLoggedIn} pages={pages} pathname={pathname} />
+        <MobileMenu
+          providers={providers}
+          session={session}
+          pages={pages}
+          pathname={pathname}
+        />
       )}
     </nav>
   );
