@@ -13,12 +13,13 @@ import Login from "./Login";
 import DesktopMenu from "./DesktopMenu";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession, getProviders } from "next-auth/react";
+import Spinner from "./Spinner";
 
 export default function NavBar() {
   const [providers, setProviders] = useState<any>(null);
 
-  const { data: session } = useSession();
-  console.log("Session:", session);
+  const { data: session, status } = useSession();
+
   useEffect(() => {
     const setAuthProviders = async () => {
       try {
@@ -38,10 +39,17 @@ export default function NavBar() {
     { name: "Home", href: "/" },
     { name: "Properties", href: "/properties" },
   ];
+
+  console.log(status);
   if (session) {
-    pages = pages.concat([{ name: "Add Property", href: "/property/add" }]);
+    pages = pages.concat([{ name: "Add Property", href: "/properties/add" }]);
   }
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (status === "loading") {
+    return <Spinner />;
+  }
   return (
     <nav className="bg-slate-800 border-b border-slate-500">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
