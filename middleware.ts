@@ -1,30 +1,19 @@
-import { auth } from "@/auth";
-import { NextResponse } from "next/server"; // Import NextResponse
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl;
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request });
 
-  // If the user is not authenticated and tries to access the /properties/add page, redirect them
-  if (
-    (!req.auth?.user && pathname === "/properties/add") ||
-    pathname === "/messages" ||
-    pathname === "/profile" ||
-    pathname === "/properties/saved"
-  ) {
-    return NextResponse.redirect(new URL("/", req.url)); // Redirect to login page
+  if (!token) {
+    // Redirect to the home page if the user is not authenticated
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // If authenticated or accessing other paths, allow the request
+  // Allow the request to continue
   return NextResponse.next();
-});
+}
 
-// Middleware configuration to apply it only to relevant paths
 export const config = {
-  matcher: [
-    "/properties/add",
-    "/messages",
-    "/profile",
-    "/properties/saved",
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/properties/add", "/profile", "/properties/saved", "/messages"],
 };

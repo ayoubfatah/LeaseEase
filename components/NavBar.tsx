@@ -40,7 +40,7 @@ export default function NavBar() {
     { name: "Properties", href: "/properties" },
   ];
 
-  console.log(status);
+
   if (session) {
     pages = pages.concat([{ name: "Add Property", href: "/properties/add" }]);
   }
