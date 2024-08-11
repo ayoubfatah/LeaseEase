@@ -1,8 +1,8 @@
 import connectedDB from "@/config/database";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/utils/getSessionUser";
+import cloudinary from "@/config/cloudinary";
 
-import { request } from "http";
 // GET /api/properties
 export const GET = async (request: any) => {
   try {
@@ -15,6 +15,7 @@ export const GET = async (request: any) => {
     return new Response("Error", { status: 500 });
   }
 };
+
 export const POST = async (request: any) => {
   try {
     await connectedDB();
@@ -31,7 +32,8 @@ export const POST = async (request: any) => {
     // Create propertyData OBJECT FOR THE DATABASE
     const images = formData
       .getAll("images")
-      .filter((img: any) => img.name !== ""); // Adjusted to any to avoid TypeScript errors
+      .filter((img: any) => img.name !== "");
+
     const propertyData = {
       type: formData.get("type"),
       name: formData.get("name"),
@@ -42,14 +44,14 @@ export const POST = async (request: any) => {
         state: formData.get("location.state"),
         zipcode: formData.get("location.zipcode"),
       },
-      beds: parseInt(formData.get("beds") as string, 10),
-      baths: parseInt(formData.get("baths") as string, 10),
-      square_feet: parseInt(formData.get("square_feet") as string, 10),
+      beds: formData.get("beds"),
+      baths: formData.get("baths"),
+      square_feet: formData.get("square_feet"),
       amenities: formData.getAll("amenities"),
       rates: {
-        weekly: parseFloat(formData.get("rates.weekly") as string),
-        monthly: parseFloat(formData.get("rates.monthly") as string),
-        nightly: parseFloat(formData.get("rates.nightly") as string),
+        weekly: formData.get("rates.weekly") as string,
+        monthly: formData.get("rates.monthly") as string,
+        nightly: formData.get("rates.nightly") as string,
       },
       seller_info: {
         name: formData.get("seller_info.name"),
@@ -57,21 +59,33 @@ export const POST = async (request: any) => {
         phone: formData.get("seller_info.phone"),
       },
       owner: userId,
-
-      // Consider how to handle images, e.g., upload separately or include in propertyData
+      images: [], // Initialize as empty array
     };
+
+    // Uploading the images
+    const imagesUploadPromises = images.map(async (image: any) => {
+      const imageBuffer = await image.arrayBuffer();
+      const imageArray = Array.from(new Uint8Array(imageBuffer));
+      const imageData = Buffer.from(imageArray).toString("base64");
+
+      const result = await cloudinary.uploader.upload(
+        `data:image/png;base64,${imageData}`,
+        { folder: "leasease" }
+      );
+      return result.secure_url;
+    });
+
+    // Wait for all images to upload
+    const uploadedImages = await Promise.all(imagesUploadPromises);
+    propertyData.images = uploadedImages;
 
     console.log("Property data:", propertyData);
     const newProperty = new Property(propertyData);
     await newProperty.save();
 
-    // Respond with JSON data
-    return new Response(
-      JSON.stringify({
-        message: "Property added successfully",
-        property: newProperty,
-      }),
-      { status: 200 }
+    // Redirect to the newly created property page
+    return Response.redirect(
+      `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
     );
   } catch (error) {
     console.error("Error processing form data:", error);
