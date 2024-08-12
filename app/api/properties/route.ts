@@ -59,7 +59,7 @@ export const POST = async (request: any) => {
         phone: formData.get("seller_info.phone"),
       },
       owner: userId,
-      images: [], // Initialize as empty array
+      images: [] as string[], // Initialize as empty array
     };
 
     // Uploading the images
@@ -79,14 +79,14 @@ export const POST = async (request: any) => {
     const uploadedImages = await Promise.all(imagesUploadPromises);
     propertyData.images = uploadedImages;
 
-    console.log("Property data:", propertyData);
     const newProperty = new Property(propertyData);
-    await newProperty.save();
+    console.log(newProperty);
+    // await newProperty.save();
 
-    // Redirect to the newly created property page
-    return Response.redirect(
-      `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
-    );
+    // // Redirect to the newly created property page
+    // return Response.redirect(
+    //   `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
+    // );
   } catch (error) {
     console.error("Error processing form data:", error);
     return new Response(

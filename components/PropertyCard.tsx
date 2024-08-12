@@ -29,7 +29,7 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
         <Image
           width={500}
           height={300}
-          src={`/images/properties/${images[0]}`}
+          src={property.images[0]}
           alt=""
           className="w-full h-auto rounded-t-xl hover:scale-105 transition-all duration-500 "
         />

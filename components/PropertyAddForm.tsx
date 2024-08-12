@@ -1,8 +1,12 @@
 "use client";
-import { useState } from "react";
+import { debounce } from "@/utils/utilsFuncs";
+import { useCallback, useState } from "react";
 
 const PropertyAddForm = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<any>({
@@ -248,6 +252,7 @@ const PropertyAddForm = () => {
           ].map((amenity) => (
             <div key={amenity}>
               <input
+                name="amenities"
                 type="checkbox"
                 id={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
                 value={amenity}

@@ -8,8 +8,11 @@ async function fetchProperties() {
     if (!apiDomain) {
       return [];
     }
-    const res = await axios.get(`${apiDomain}/properties`);
-
+    const res = await axios.get(`${apiDomain}/properties`, {
+      headers: {
+        "Cache-Control": "max-age=0",
+      },
+    });
     if (res.status !== 200) {
       throw new Error("Failed to fetch properties");
     }
