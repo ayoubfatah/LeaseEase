@@ -10,6 +10,7 @@ import { PropertyType } from "@/types/types";
 import PropertyDetails from "@/components/PropertyDetails";
 import SearchInput from "@/components/SearchInput";
 import Spinner from "@/components/Spinner";
+import PropertyImages from "@/components/PropertyImages";
 export default function page() {
   const { id } = useParams();
   const [property, setProperty] = useState<PropertyType | null>(null);
@@ -148,6 +149,7 @@ export default function page() {
               </div>
             </div>
           </section>
+          <PropertyImages images={property?.images} />
         </>
       )}
     </>

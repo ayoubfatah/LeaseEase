@@ -80,13 +80,13 @@ export const POST = async (request: any) => {
     propertyData.images = uploadedImages;
 
     const newProperty = new Property(propertyData);
-    console.log(newProperty);
-    // await newProperty.save();
 
-    // // Redirect to the newly created property page
-    // return Response.redirect(
-    //   `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
-    // );
+    await newProperty.save();
+
+    // Redirect to the newly created property page
+    return Response.redirect(
+      `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
+    );
   } catch (error) {
     console.error("Error processing form data:", error);
     return new Response(
