@@ -2,6 +2,8 @@ import React from "react";
 import "@/assets/styles/globals.css";
 import NavBar from "@/components/NavBar";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import theme from "@/assets/styles/theme";
 import { ThemeProvider } from "@mui/material/styles";
 import {
@@ -13,6 +15,7 @@ import {
 } from "@clerk/nextjs";
 import { SessionProvider } from "next-auth/react";
 import AuthProvider from "@/components/AuthProvider";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Leaseease",
@@ -28,8 +31,9 @@ export default function RootLayout({
       <html lang="en">
         <body>
           <NavBar />
-
           <main>{children}</main>
+          <ToastContainer />
+          <Footer />
         </body>
       </html>
     </AuthProvider>

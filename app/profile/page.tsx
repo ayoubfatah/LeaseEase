@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { DELETE } from "../api/properties/[id]/route";
+import { toast } from "react-toastify";
 
 export default function Page() {
   const { data: session }: { data: Session | any } = useSession();
@@ -51,12 +52,12 @@ export default function Page() {
         const updatedProperties = properties.filter((prop) => prop._id !== id);
 
         setProperties(updatedProperties);
-        alert("property deleted");
+        toast.success("Property deleted successfully");
       } else {
-        alert("failed to delete property ");
+        toast.error("Failed to delete property");
       }
     } catch (error) {
-      alert("failed to delete property ");
+      toast.error("Failed to delete property");
 
       console.log(error);
     }
