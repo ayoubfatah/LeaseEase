@@ -23,7 +23,7 @@ export default function DesktopMenu({
           >
             {page.name}
           </Link>
-        ))}
+        ))} 
       </div>
     </div>
   );
