@@ -129,7 +129,7 @@ const PropertyEditForm = () => {
         toast.error("Something went wrong");
       }
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error("Something went wrong");  
       console.log(error);
     }
   };

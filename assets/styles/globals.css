@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.maplibregl-map {
+  border-radius: 18px;
+}
