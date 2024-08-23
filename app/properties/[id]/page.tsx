@@ -11,7 +11,6 @@ import PropertyDetails from "@/components/PropertyDetails";
 import SearchInput from "@/components/SearchInput";
 import Spinner from "@/components/Spinner";
 import PropertyImages from "@/components/PropertyImages";
-import PropertyMap from "@/components/PropertyMap";
 export default function page() {
   const { id } = useParams();
   const [property, setProperty] = useState<PropertyType | null>(null);
@@ -150,10 +149,8 @@ export default function page() {
               </div>
             </div>
           </section>
+
           <PropertyImages images={property?.images} />
-          <section className=" bg-slate-100 rounded-lg overflow-hidden py-[20px] px-[80px]">
-            <PropertyMap property={property} />
-          </section>
         </>
       )}
     </>
