@@ -3,7 +3,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { PropertyType } from "@/types/types";
 
-const PropertyMap: React.FC<PropertyType> = ({ property }: any) => {
+const PropertyMap: React.FC<any> = ({ property }: any) => {
   const address = `${property.location.street}, ${property.location.city}, ${property.location.state}, ${property.location.zipcode}`;
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
@@ -17,17 +17,17 @@ const PropertyMap: React.FC<PropertyType> = ({ property }: any) => {
         const response = await fetch(
           `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
             address
-          )}&key=${process.env.NEXT_PUBLIC_GEO_API_KEY}` // Ensure your API key is safely stored in the environment variables
+          )}&key=e490c575fb7a4587b3d19fa2141a47ec`
         );
 
         if (!response.ok) {
-          throw new Error(`Error fetching data: ${response.statusText}`); // Handle HTTP errors
+          throw new Error(`Error fetching data: ${response.statusText}`);
         }
 
         const data = await response.json();
 
         if (data.results.length === 0) {
-          throw new Error("No results found for the given address"); // Handle case when no results are found
+          throw new Error("No results found for the given address");
         }
 
         const { lat, lng } = data.results[0].geometry;
