@@ -10,7 +10,7 @@ export default function SearchInput() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (location === "" || propertyType === "All") {
+    if (location === "" && propertyType === "All") {
       router.push("/properties");
     } else {
       const query = `?location=${location}&propertyType=${propertyType}`;
