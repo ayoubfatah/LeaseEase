@@ -66,7 +66,7 @@ export default function page() {
                 <aside className=" space-y-4 ">
                   <BookmarkButton property={property} />
                   <SharePropertyButton property={property} />
-                  <ContactForm />
+                  <ContactForm property={property} />
                 </aside>
               </div>
             </div>

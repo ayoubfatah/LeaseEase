@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import profileDefault from "@/public/images/profile.png";
 import { signOut, useSession } from "next-auth/react";
+import { FaBell } from "react-icons/fa";
 export default function ProfileDropDown() {
   const { data: session } = useSession();
   const [isRightSideMenuOpen, setIsRightSideMenuOpen] = useState(false);
@@ -35,7 +36,11 @@ export default function ProfileDropDown() {
   };
 
   return (
-    <div className="relative ml-3">
+    <div className="relative ml-3 flex justify-center gap-3 ">
+      {/* notification */}
+      <button className="ml-2 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+        <FaBell className="h-6 w-6" />
+      </button>
       <button
         onClick={toggleMenu}
         type="button"
@@ -54,6 +59,8 @@ export default function ProfileDropDown() {
           alt=""
         />
       </button>
+
+      {/* Right side menu */}
 
       {isRightSideMenuOpen && (
         <div

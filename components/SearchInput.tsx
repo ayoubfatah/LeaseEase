@@ -20,10 +20,10 @@ export default function SearchInput() {
   };
 
   return (
-    <div className="bg-slate-800 h-[130px] flex justify-center items-center w-full">
+    <div className="py-3 bg-slate-800 h-[150px] flex justify-center items-center w-full">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col justify-center lg:flex-row gap-2 w-[45%] text-black"
+        className=" flex flex-col justify-center lg:flex-row gap-2 w-[45%] text-black"
       >
         <input
           placeholder="Enter Keywords or Location"
