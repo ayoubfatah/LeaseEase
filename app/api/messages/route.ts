@@ -24,7 +24,7 @@ export const POST = async (request: any) => {
     }
     const { user } = sessionUser;
     // cant send message to self
-    if (recipient === user._id) {
+    if (recipient === user.id) {
       return new Response(
         JSON.stringify({ message: "Cannot send message to yourself" }),
         {
@@ -49,6 +49,42 @@ export const POST = async (request: any) => {
     });
   } catch (error) {
     console.log(error);
+    return new Response(JSON.stringify({ message: "Error sending message" }), {
+      status: 500,
+    });
+  }
+};
+
+// Get /api/messages
+
+export const GET = async () => {
+  try {
+    await connectDB();
+
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || !sessionUser.userId) {
+      return new Response(JSON.stringify("user id is required "), {
+        status: 401,
+      });
+    }
+    const { userId } = sessionUser;
+    const readMessages = await Messages.find({ recipient: userId, read: true })
+      .sort({ createdAt: -1 }) //sort read msgs in ascending order
+      .populate("sender", "name")
+      .populate("property", "name");
+    const unReadMessages = await Messages.find({
+      recipient: userId,
+      read: false,
+    })
+      .sort({ createdAt: -1 }) //sort read msgs in ascending order
+      .populate("sender", "name")
+      .populate("property", "name");
+
+    const messages = [...unReadMessages, ...readMessages];
+
+    return new Response(JSON.stringify(messages), { status: 200 });
+  } catch (error) {
     return new Response(JSON.stringify({ message: "Error sending message" }), {
       status: 500,
     });

@@ -2,8 +2,10 @@
 import { PropertyType } from "@/types/types";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
 
 export default function ContactForm({ property }: { property: PropertyType }) {
+  const { data: session } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -33,7 +35,8 @@ export default function ContactForm({ property }: { property: PropertyType }) {
 
         setWasSubmitted(true);
       } else if (res.status === 400 || res.status === 401) {
-        toast.error(data.message);
+        const dataObj = await res.json();
+        toast.error(dataObj.message);
       } else {
         toast.error("Failed to send message");
       }
@@ -46,6 +49,9 @@ export default function ContactForm({ property }: { property: PropertyType }) {
       setMessage("");
       setPhone("");
     }
+  }
+  if (!session) {
+    return <p>You must be logged in to contact this property manager</p>;
   }
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">

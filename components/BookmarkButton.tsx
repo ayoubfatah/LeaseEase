@@ -5,14 +5,16 @@ import Spinner from "./Spinner";
 
 export default function BookmarkButton({ property }: any) {
   const { data: session } = useSession();
+
   const [isBookMarked, setIsBookMarked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const userId = session?.user?.id; // Move this up
 
   useEffect(() => {
     if (!userId) return;
     async function getBookmarkedStatus() {
       try {
+        setLoading(true);
         const res = await fetch("/api/bookmarks/check", {
           // Ensure endpoint is correct
           method: "POST",
@@ -69,7 +71,7 @@ export default function BookmarkButton({ property }: any) {
   }
 
   if (loading) return <p className="text-center">Loading...</p>;
-
+  if (!session) return null;
   return isBookMarked ? (
     <button
       onClick={handleClicked}
