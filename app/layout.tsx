@@ -16,6 +16,7 @@ import {
 import { SessionProvider } from "next-auth/react";
 import AuthProvider from "@/components/AuthProvider";
 import Footer from "@/components/Footer";
+import { LeaseProvider } from "./customHooks/LeastContextApi";
 
 export const metadata = {
   title: "Leaseease",
@@ -27,15 +28,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
-      <html lang="en">
-        <body>
-          <NavBar />
-          <main>{children}</main>
-          <ToastContainer />
-          <Footer />
-        </body>
-      </html>
-    </AuthProvider>
+    <LeaseProvider>
+      <AuthProvider>
+        <html lang="en">
+          <body>
+            <NavBar />
+            <main>{children}</main>
+            <ToastContainer />
+            <Footer />
+          </body>
+        </html>
+      </AuthProvider>
+    </LeaseProvider>
   );
 }

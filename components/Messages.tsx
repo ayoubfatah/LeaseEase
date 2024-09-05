@@ -1,4 +1,5 @@
 "use client";
+import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 import { format } from "date-fns";
 
 import React, { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { toast } from "react-toastify";
 export default function Messages({ message }: any) {
   const [isRead, setIsRead] = useState(message.read);
   const [isDeleted, setIsDeleted] = useState(false);
+  const { setUnreadCount } = useLeaseContext();
 
   async function handleReadClick() {
     try {
@@ -17,6 +19,7 @@ export default function Messages({ message }: any) {
         // we only want message
         const { read } = await res.json();
         setIsRead(read);
+        setUnreadCount((prev) => (read ? prev - 1 : prev + 1));
         if (read) {
           toast.success("Message marked as read");
         }
