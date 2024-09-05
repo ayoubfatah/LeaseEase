@@ -38,6 +38,7 @@ export default function Messages({ message }: any) {
       });
       if (res.status === 200) {
         setIsDeleted(true);
+        setUnreadCount((prev) => prev - 1);
         toast.success("Message  Deleted successfully");
       }
     } catch (error) {

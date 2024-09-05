@@ -9,17 +9,8 @@ export default function FeaturedPropertyCard({
 }: {
   property: PropertyType;
 }) {
-  const {
-    name,
-    type,
-
-    location,
-    beds,
-    baths,
-    square_feet,
-    rates,
-    images,
-  } = property ?? {};
+  const { name, type, location, beds, baths, square_feet, rates, images } =
+    property ?? {};
 
   return (
     <div className="rounded-xl shadow-md relative  bg-white  ">

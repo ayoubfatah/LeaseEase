@@ -1,6 +1,7 @@
 import React from "react";
 import "@/assets/styles/globals.css";
 import NavBar from "@/components/NavBar";
+import "photoswipe/dist/photoswipe.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

@@ -7,8 +7,8 @@ import Link from "next/link";
 import { fetchProperties } from "@/utils/request";
 
 export default async function HomeProperties() {
-  const properties = await fetchProperties();
-  const slicedProperties = properties?.slice(0, 3) ?? [];
+  const data = await fetchProperties();
+  const slicedProperties = data.properties?.slice(0, 3) ?? [];
 
   return (
     <section className="px-4 py-6">

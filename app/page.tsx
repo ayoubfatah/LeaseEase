@@ -21,7 +21,6 @@ export default function HomePage() {
       <InfoBoxes />
       <HomeFeaturedProperties />
       <HomeProperties />
-      <Footer />
     </>
   );
 }
