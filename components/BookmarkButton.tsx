@@ -3,12 +3,18 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Spinner from "./Spinner";
 
+interface SessionUser {
+  id: string;
+  name?: string;
+  email?: string;
+  image?: string;
+}
 export default function BookmarkButton({ property }: any) {
   const { data: session } = useSession();
 
   const [isBookMarked, setIsBookMarked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const userId = session?.user?.id; // Move this up
+  const userId = (session?.user as SessionUser)?.id;
 
   useEffect(() => {
     if (!userId) return;
