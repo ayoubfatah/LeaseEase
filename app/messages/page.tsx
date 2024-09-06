@@ -1,26 +1,30 @@
 "use client";
 import Messages from "@/components/Messages";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import Spinner from "@/components/Spinner";
 
 export default function MessagesPage() {
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getMessages() {
-      try {
-        const res = await fetch("/api/messages");
-        if (res.status === 200) {
-          const data = await res.json();
-          setMessages(data);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    getMessages();
-  }, []);
+  const fetchMessages = async () => {
+    const res = await axios.get("/api/messages");
+    return res.data;
+  };
+
+  const {
+    data: messages,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["messages"],
+    queryFn: fetchMessages,
+  });
+
+  if (isLoading) return <Spinner />;
+
+  if (isError) return <p>Error: {(error as Error).message}</p>;
+
   return (
     <section className="bg-blue-50">
       <div className="container m-auto py-24 max-w-6xl">
