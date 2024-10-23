@@ -1,16 +1,17 @@
 "use client";
 import Messages from "@/components/Messages";
-import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import Spinner from "@/components/Spinner";
+import React, { useEffect, useState } from "react";
+
+async function fetchMessages() {
+  const response = await fetch("/api/messages");
+  if (!response.ok) {
+    throw new Error("Failed to fetch properties");
+  }
+  return response.json();
+}
 
 export default function MessagesPage() {
-  const fetchMessages = async () => {
-    const res = await axios.get("/api/messages");
-    return res.data;
-  };
-
   const {
     data: messages,
     isLoading,
@@ -18,12 +19,8 @@ export default function MessagesPage() {
     error,
   } = useQuery({
     queryKey: ["messages"],
-    queryFn: fetchMessages,
+    queryFn: () => fetchMessages(),
   });
-
-  if (isLoading) return <Spinner />;
-
-  if (isError) return <p>Error: {(error as Error).message}</p>;
 
   return (
     <section className="bg-blue-50">

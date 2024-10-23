@@ -1,50 +1,46 @@
 "use client";
 import { PropertyType } from "@/types/types";
-import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import PropertyCard from "./PropertyCard";
 import Spinner from "./Spinner";
 import Pagination from "./Pagination";
 
+// Separate the fetch function for cleaner code
+const fetchProperties = async (page: number, pageSize: number) => {
+  const response = await fetch(
+    `/api/properties?page=${page}&pageSize=${pageSize}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch properties");
+  }
+  return response.json();
+};
+
 export default function Properties() {
-  const [properties, setProperties] = useState<PropertyType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(3);
-  const [totalItems, setTotalItems] = useState(0);
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const response = await fetch(
-          `/api/properties?page=${page}&pageSize=${pageSize}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch properties");
-        }
-        const data = await response.json();
 
-        setProperties(data.properties);
-        setTotalItems(data.total);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-        setError("Failed to fetch properties");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProperties();
-  }, [page, pageSize]);
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["properties", page, pageSize],
+    queryFn: () => fetchProperties(page, pageSize),
+  });
+
   function handlePageChange(newPage: number) {
     setPage(newPage);
   }
 
-  if (loading) {
+  if (isLoading) {
     return <Spinner />;
   }
 
-  if (error) {
-    return <p>{error}</p>;
+  if (isError) {
+    return <p>{error.message}</p>;
   }
+
+  const properties = data?.properties || [];
+  const totalItems = data?.total || 0;
+
   return (
     <section className="px-4 py-6">
       <div className="container-xl lg:container m-auto px-4 py-6">

@@ -18,7 +18,11 @@ import { SessionProvider } from "next-auth/react";
 import AuthProvider from "@/components/AuthProvider";
 import Footer from "@/components/Footer";
 import { LeaseProvider } from "./customHooks/LeastContextApi";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ReactQueryProvider from "./ReactQueryProvider";
 
+const queryClient = new QueryClient();
 export const metadata = {
   title: "Leaseease",
   description: "Leaseease",
@@ -29,17 +33,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <LeaseProvider>
-      <AuthProvider>
-        <html lang="en">
-          <body>
-            <NavBar />
-            <main>{children}</main>
-            <ToastContainer />
-            <Footer />
-          </body>
-        </html>
-      </AuthProvider>
-    </LeaseProvider>
+    <ReactQueryProvider>
+      <LeaseProvider>
+        <AuthProvider>
+          <html lang="en">
+            <body>
+              <NavBar />
+              <main>{children}</main>
+              <ToastContainer />
+              <Footer />
+            </body>
+          </html>
+        </AuthProvider>
+      </LeaseProvider>
+    </ReactQueryProvider>
   );
 }

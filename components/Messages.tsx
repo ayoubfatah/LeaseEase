@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export default function Messages({ message }: any) {
+  console.log(message);
   const [isRead, setIsRead] = useState(message.read);
   const [isDeleted, setIsDeleted] = useState(false);
   const { setUnreadCount } = useLeaseContext();

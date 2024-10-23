@@ -67,12 +67,12 @@ export default function Page() {
     <section className="bg-blue-50">
       <div className="container m-auto py-24">
         <div className="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
-          <h1 className="text-3xl font-bold mb-4">Your Profile</h1>
-          <div className="flex flex-col md:flex-row">
+          <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
+          <div className="flex flex-col md:flex-col">
             <ProfileUserInfo />
 
-            <div className="md:w-3/4 md:pl-4">
-              <h2 className="text-xl font-semibold mb-4">Your Listings</h2>
+            <div className="mt-10 ">
+              <h2 className="text-2xl font-bold mb-4">Your Listings</h2>
               {properties.map((property: any) => (
                 <div key={property.id} className="mb-10">
                   <Link href={`/properties/${property._id}`}>

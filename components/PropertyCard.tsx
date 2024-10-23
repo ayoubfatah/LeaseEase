@@ -27,6 +27,7 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
     <div className="rounded-xl shadow-md relative  ">
       <div className="overflow-hidden h-[220px]">
         <Image
+          quality={10}
           width={500}
           height={300}
           src={property.images[0]}
