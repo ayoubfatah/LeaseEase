@@ -4,11 +4,7 @@ import React from "react";
 
 export default function ProfileUserInfo() {
   const { data: session } = useSession();
-  const fullName = session?.user?.name;
-  function handleProfileChanges(){
-    
-  }
-  console.log(session, "data");
+
   return (
     <div className=" pl-4 mt-10 flex gap-10">
       <div className=" ">
@@ -23,16 +19,10 @@ export default function ProfileUserInfo() {
       </div>
 
       <div>
-        <form className="text-xl mb-2">
-          <label className="font-bold block">Name: </label>
-          <input
-            type="text"
-            onBlur={() => {
-              alert("something");
-            }}
-            defaultValue={fullName ?? ""}
-          />
-        </form>
+        <h2 className="text-xl mb-2">
+          <span className="font-bold block">Name: </span>
+          {session?.user?.name}
+        </h2>
         <h2 className="text-xl">
           <span className="font-bold block">Email: </span>
           {session?.user?.email}

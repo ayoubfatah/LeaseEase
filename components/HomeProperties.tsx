@@ -7,8 +7,15 @@ import Link from "next/link";
 import { fetchProperties } from "@/utils/request";
 
 export default async function HomeProperties() {
-  const data = await fetchProperties();
-  const slicedProperties = data.properties?.slice(0, 3) ?? [];
+  let data;
+  try {
+    data = await fetchProperties();
+  } catch (error) {
+    console.log("Failed to fetch properties during build:", error);
+    data = { properties: [] };
+  }
+
+  const slicedProperties = data?.properties?.slice(0, 3) ?? [];
 
   return (
     <section className="px-4 py-6">

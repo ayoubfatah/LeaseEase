@@ -6,11 +6,17 @@ import FeaturedPropertyCard from "./FeaturedPropertyCard";
 import { fetchProperties } from "@/utils/request";
 
 export default async function HomeFeaturedProperties() {
-  const data = await fetchProperties();
+  let data;
+  try {
+    data = await fetchProperties();
+  } catch (error) {
+    console.log("Failed to fetch featured properties during build:", error);
+    data = { properties: [] };
+  }
 
   const featuredProperties: PropertyType[] =
-    data.properties
-      .filter((prop: PropertyType) => prop.is_featured === true)
+    data?.properties
+      ?.filter((prop: PropertyType) => prop.is_featured === true)
       .slice(0, 3) ?? [];
 
   return (

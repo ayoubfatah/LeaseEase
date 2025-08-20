@@ -2,44 +2,43 @@ import connectedDB from "@/config/database";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/utils/getSessionUser";
 import cloudinary from "@/config/cloudinary";
+import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/properties
-export const GET = async (request: any) => {
+export const GET = async (request: NextRequest) => {
   try {
     await connectedDB();
-    const page = request.nextUrl.searchParams.get("page") || 1;
-    const pageSize = request.nextUrl.searchParams.get("pageSize") || 3;
+
+    const page = Number(request.nextUrl.searchParams.get("page")) || 1;
+    const pageSize = Number(request.nextUrl.searchParams.get("pageSize")) || 3;
     const skip = (page - 1) * pageSize;
 
     const total = await Property.countDocuments({});
-
     const properties = await Property.find({}).skip(skip).limit(pageSize);
-    const result = {
-      total,
-      properties,
-    };
 
-    return new Response(JSON.stringify(result), { status: 200 });
+    return NextResponse.json({ total, properties });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return new Response("Error", { status: 500 });
   }
 };
 
-export const POST = async (request: any) => {
+// POST /api/properties
+export const POST = async (request: NextRequest) => {
   try {
     await connectedDB();
 
     const sessionUser = await getSessionUser();
-    if (!sessionUser || !sessionUser.userId) {
-      return new Response(JSON.stringify({ message: "User ID is required" }), {
-        status: 401,
-      });
+    if (!sessionUser?.userId) {
+      return NextResponse.json(
+        { message: "User ID is required" },
+        { status: 401 }
+      );
     }
+
     const { userId } = sessionUser;
     const formData = await request.formData();
 
-    // Create propertyData OBJECT FOR THE DATABASE
     const images = formData
       .getAll("images")
       .filter((img: any) => img.name !== "");
@@ -69,10 +68,10 @@ export const POST = async (request: any) => {
         phone: formData.get("seller_info.phone"),
       },
       owner: userId,
-      images: [] as string[], // Initialize as empty array
+      images: [] as string[],
     };
 
-    // Uploading the images
+    // Upload images to Cloudinary
     const imagesUploadPromises = images.map(async (image: any) => {
       const imageBuffer = await image.arrayBuffer();
       const imageArray = Array.from(new Uint8Array(imageBuffer));
@@ -85,22 +84,22 @@ export const POST = async (request: any) => {
       return result.secure_url;
     });
 
-    // Wait for all images to upload
-    const uploadedImages = await Promise.all(imagesUploadPromises);
-    propertyData.images = uploadedImages;
+    propertyData.images = await Promise.all(imagesUploadPromises);
 
     const newProperty = new Property(propertyData);
-    console.log(newProperty);
     await newProperty.save();
 
-    // Redirect to the newly created property page
-    return Response.redirect(
-      `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
-    );
+    // Redirect
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`,
+      },
+    });
   } catch (error) {
     console.error("Error processing form data:", error);
-    return new Response(
-      JSON.stringify({ message: "Failed to process form data" }),
+    return NextResponse.json(
+      { message: "Failed to process form data" },
       { status: 500 }
     );
   }

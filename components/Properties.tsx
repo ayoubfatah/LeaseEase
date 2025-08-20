@@ -24,6 +24,7 @@ export default function Properties() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["properties", page, pageSize],
     queryFn: () => fetchProperties(page, pageSize),
+    enabled: typeof window !== "undefined", // only run on client
   });
 
   function handlePageChange(newPage: number) {

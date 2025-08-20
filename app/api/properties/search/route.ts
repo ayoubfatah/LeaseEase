@@ -2,6 +2,7 @@ import connectDB from "@/config/database";
 import Property from "@/models/Property";
 
 // GET /api/properties/search
+export const dynamic = "force-dynamic";
 
 export const GET = async (request: any) => {
   try {
@@ -29,7 +30,7 @@ export const GET = async (request: any) => {
     }
 
     const properties = await Property.find(query);
-  
+
     console.log(location, propertyType);
     console.log(query);
 
@@ -43,4 +44,3 @@ export const GET = async (request: any) => {
     });
   }
 };
- 

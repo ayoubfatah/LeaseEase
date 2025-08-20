@@ -12,6 +12,20 @@ async function fetchMessages() {
 }
 
 export default function MessagesPage() {
+  function getUniqueMessages(messages: any) {
+    const uniqueMessagesMap = new Map();
+
+    messages?.forEach((message: any) => {
+      const uniqueKey = `${message.sender._id}-${message.property._id}`;
+
+      // Add only if this sender-property combination hasn't been added yet
+      if (!uniqueMessagesMap.has(uniqueKey)) {
+        uniqueMessagesMap.set(uniqueKey, message);
+      }
+    });
+
+    return Array.from(uniqueMessagesMap.values());
+  }
   const {
     data: messages,
     isLoading,
@@ -21,7 +35,9 @@ export default function MessagesPage() {
     queryKey: ["messages"],
     queryFn: () => fetchMessages(),
   });
-
+  console.log(messages, "messages");
+  const uniqueMessages = getUniqueMessages(messages);
+  console.log(uniqueMessages, "messages page");
   return (
     <section className="bg-blue-50">
       <div className="container m-auto py-24 max-w-6xl">

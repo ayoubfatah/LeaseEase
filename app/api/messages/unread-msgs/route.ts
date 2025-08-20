@@ -2,6 +2,8 @@ import connectDB from "@/config/database";
 import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async () => {
   try {
     await connectDB();

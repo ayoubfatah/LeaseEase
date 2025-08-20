@@ -9,12 +9,25 @@ export const dynamic = "force-dynamic";
 
 export const POST = async (request: any) => {
   try {
+    console.log("Connecting to the database...");
     await connectDB();
     const { email, phone, message, property, recipient, name } =
       await request.json();
+
+    console.log("Received data:", {
+      email,
+      phone,
+      message,
+      property,
+      recipient,
+      name,
+    });
+
     const sessionUser = await getSessionUser();
+    console.log("Session user:", sessionUser);
 
     if (!sessionUser || !sessionUser.userId) {
+      console.log("User not logged in");
       return new Response(
         JSON.stringify({ message: "You must be logged in" }),
         {
@@ -22,9 +35,11 @@ export const POST = async (request: any) => {
         }
       );
     }
+
     const { user } = sessionUser;
     // cant send message to self
     if (recipient === user.id) {
+      console.log("Attempt to send message to self");
       return new Response(
         JSON.stringify({ message: "Cannot send message to yourself" }),
         {
@@ -32,6 +47,7 @@ export const POST = async (request: any) => {
         }
       );
     }
+
     const newMessage = new Messages({
       sender: user.id,
       recipient,
@@ -41,14 +57,16 @@ export const POST = async (request: any) => {
       body: message,
       phone,
     });
-    console.log(user, "user");
-    console.log(newMessage, "newMessage");
+
+    console.log("New message object:", newMessage);
     await newMessage.save();
+
+    console.log("Message saved successfully");
     return new Response(JSON.stringify({ message: "Message sent" }), {
       status: 200,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in POST /api/messages:", error);
     return new Response(JSON.stringify({ message: "Error sending message" }), {
       status: 500,
     });
@@ -59,20 +77,27 @@ export const POST = async (request: any) => {
 
 export const GET = async () => {
   try {
+    console.log("Connecting to the database...");
     await connectDB();
 
     const sessionUser = await getSessionUser();
+    console.log("Session user for GET:", sessionUser);
 
     if (!sessionUser || !sessionUser.userId) {
+      console.log("User ID is required");
       return new Response(JSON.stringify("user id is required "), {
         status: 401,
       });
     }
+
     const { userId } = sessionUser;
+    console.log("Fetching messages for user ID:", userId);
+
     const readMessages = await Messages.find({ recipient: userId, read: true })
       .sort({ createdAt: -1 }) //sort read msgs in ascending order
       .populate("sender", "name")
       .populate("property", "name");
+
     const unReadMessages = await Messages.find({
       recipient: userId,
       read: false,
@@ -82,9 +107,11 @@ export const GET = async () => {
       .populate("property", "name");
 
     const messages = [...unReadMessages, ...readMessages];
+    console.log("Fetched messages:", messages);
 
     return new Response(JSON.stringify(messages), { status: 200 });
   } catch (error) {
+    console.error("Error in GET /api/messages:", error);
     return new Response(JSON.stringify({ message: "Error sending message" }), {
       status: 500,
     });

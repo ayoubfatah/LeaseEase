@@ -1,12 +1,16 @@
 import connectDB from "@/config/database";
 import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
+import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // PUT /api/message/id
 
-export const PUT = async (request: any, { params }: { params: any }) => {
+export const PUT = async (
+  request: NextRequest,
+  { params }: { params: any }
+) => {
   try {
     connectDB();
 

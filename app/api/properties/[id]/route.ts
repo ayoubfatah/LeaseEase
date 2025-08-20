@@ -1,6 +1,7 @@
 import connectDB from "@/config/database";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/utils/getSessionUser";
+import { private_safeAlpha } from "@mui/system";
 
 //GET api/properties/id
 export const GET = async (request: any, { params }: { params: any }) => {
@@ -100,6 +101,8 @@ export const PUT = async (request: any, { params }: { params: any }) => {
       },
       owner: userId,
     };
+
+    //
 
     // Update property in the database
     const updatedProperty = await Property.findByIdAndUpdate(
