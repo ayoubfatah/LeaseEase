@@ -19,7 +19,7 @@ const fetchProperties = async (page: number, pageSize: number) => {
 
 export default function Properties() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
+  const [pageSize, setPageSize] = useState(12);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["properties", page, pageSize],

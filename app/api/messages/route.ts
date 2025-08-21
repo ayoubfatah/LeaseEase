@@ -106,7 +106,10 @@ export const GET = async () => {
       .populate("sender", "name")
       .populate("property", "name");
 
-    const messages = [...unReadMessages, ...readMessages];
+    // Filter out messages whose related property or sender has been deleted
+    const messages = [...unReadMessages, ...readMessages].filter(
+      (msg: any) => msg.sender && msg.property
+    );
     console.log("Fetched messages:", messages);
 
     return new Response(JSON.stringify(messages), { status: 200 });

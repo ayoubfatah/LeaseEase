@@ -1,6 +1,27 @@
 "use client";
-import { debounce } from "@/utils/utilsFuncs";
-import { useCallback, useState } from "react";
+import type React from "react";
+
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Home, MapPin, Bed, DollarSign, User, Upload } from "lucide-react";
 
 const PropertyAddForm = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -58,17 +79,17 @@ const PropertyAddForm = () => {
     }
   };
 
-  const handleAmenitiesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    // clone the current array
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prevData: any) => ({ ...prevData, [name]: value }));
+  };
+
+  const handleAmenitiesChange = (amenity: string, checked: boolean) => {
     const amenities = [...formData.amenities];
-    // add value to array
     if (checked) {
-      amenities.push(value);
+      amenities.push(amenity);
     } else {
-      // else remove value form array
-      const index = amenities.indexOf(value);
-      if (index !== 1) {
+      const index = amenities.indexOf(amenity);
+      if (index !== -1) {
         amenities.splice(index, 1);
       }
     }
@@ -76,8 +97,8 @@ const PropertyAddForm = () => {
       ...prev,
       amenities: amenities,
     }));
-    // update state
   };
+
   const handleImageChange = (e: any) => {
     const { files } = e.target;
     console.log(files);
@@ -90,285 +111,387 @@ const PropertyAddForm = () => {
   };
 
   return (
-    <form action="/api/properties" method="POST" encType="multipart/form-data">
-      <h2 className="text-3xl text-center font-semibold mb-6">Add Property</h2>
-
-      <div className="mb-4">
-        <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
-          Property Type
-        </label>
-        <select
-          id="type"
-          name="type"
-          className="border rounded w-full py-2 px-3"
-          value={formData.type}
-          onChange={handleChange}
-          required
-        >
-          <option value="Apartment">Apartment</option>
-          <option value="Condo">Condo</option>
-          <option value="House">House</option>
-          <option value="CabinOrCottage">Cabin or Cottage</option>
-          <option value="Room">Room</option>
-          <option value="Studio">Studio</option>
-          <option value="Other">Other</option>
-        </select>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Add New Property</h1>
+        <p className="text-muted-foreground">Create a new property listing</p>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Listing Name
-        </label>
-        <input
-          type="text"
-          name="name"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="eg. Beautiful Apartment In Miami"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="description"
-          className="block text-gray-700 font-bold mb-2"
-        >
-          Description
-        </label>
-        <textarea
-          name="description"
-          className="border rounded w-full py-2 px-3"
-          rows={4}
-          placeholder="Add an optional description of your property"
-          value={formData.description}
-          onChange={handleChange}
-        ></textarea>
-      </div>
-
-      <div className="mb-4 bg-blue-50 p-4">
-        <label className="block text-gray-700 font-bold mb-2">Location</label>
-        <input
-          type="text"
-          name="location.street"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Street"
-          value={formData.location.street}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="location.city"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="City"
-          value={formData.location.city}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="location.state"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="State"
-          value={formData.location.state}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="location.zipcode"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Zipcode"
-          value={formData.location.zipcode}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="mb-4 flex flex-wrap">
-        <div className="w-full sm:w-1/3 pr-2">
-          <label htmlFor="beds" className="block text-gray-700 font-bold mb-2">
-            Beds
-          </label>
-          <input
-            type="number"
-            name="beds"
-            className="border rounded w-full py-2 px-3"
-            value={formData.beds}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="w-full sm:w-1/3 px-2">
-          <label htmlFor="baths" className="block text-gray-700 font-bold mb-2">
-            Baths
-          </label>
-          <input
-            type="number"
-            name="baths"
-            className="border rounded w-full py-2 px-3"
-            value={formData.baths}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="w-full sm:w-1/3 pl-2">
-          <label
-            htmlFor="square_feet"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Square Feet
-          </label>
-          <input
-            type="number"
-            name="square_feet"
-            className="border rounded w-full py-2 px-3"
-            value={formData.square_feet}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">Amenities</label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {[
-            "Wifi",
-            "Full kitchen",
-            "Washer & Dryer",
-            "Free Parking",
-            "Swimming Pool",
-            "Hot Tub",
-            "24/7 Security",
-            "Wheelchair Accessible",
-            "Elevator Access",
-            "Dishwasher",
-            "Gym/Fitness Center",
-            "Air Conditioning",
-            "Balcony/Patio",
-            "Smart TV",
-            "Coffee Maker",
-          ].map((amenity) => (
-            <div key={amenity}>
-              <input
-                name="amenities"
-                type="checkbox"
-                id={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
-                value={amenity}
-                checked={formData.amenities.includes(amenity)}
-                className="mr-2"
-                onChange={handleAmenitiesChange}
-              />
-              <label
-                htmlFor={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
+      <form
+        action="/api/properties"
+        method="POST"
+        encType="multipart/form-data"
+        className="space-y-8"
+      >
+        {/* Property Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Property Details
+            </CardTitle>
+            <CardDescription>
+              Basic information about your property
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="type">Property Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleSelectChange("type", value)}
+                required
               >
-                {amenity}
-              </label>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Apartment">Apartment</SelectItem>
+                  <SelectItem value="Condo">Condo</SelectItem>
+                  <SelectItem value="House">House</SelectItem>
+                  <SelectItem value="CabinOrCottage">
+                    Cabin or Cottage
+                  </SelectItem>
+                  <SelectItem value="Room">Room</SelectItem>
+                  <SelectItem value="Studio">Studio</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {/* Submit the selected type to the server */}
+              <input type="hidden" name="type" value={formData.type} />
             </div>
-          ))}
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Listing Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g. Beautiful Apartment In Miami"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="Add an optional description of your property"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Location */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Location
+            </CardTitle>
+            <CardDescription>Where is your property located?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="location.street">Street Address</Label>
+              <Input
+                id="location.street"
+                name="location.street"
+                placeholder="123 Main Street"
+                value={formData.location.street}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="location.city">City</Label>
+                <Input
+                  id="location.city"
+                  name="location.city"
+                  placeholder="City"
+                  value={formData.location.city}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location.state">State</Label>
+                <Input
+                  id="location.state"
+                  name="location.state"
+                  placeholder="State"
+                  value={formData.location.state}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location.zipcode">ZIP Code</Label>
+                <Input
+                  id="location.zipcode"
+                  name="location.zipcode"
+                  placeholder="12345"
+                  value={formData.location.zipcode}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Property Specifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bed className="h-5 w-5" />
+              Property Specifications
+            </CardTitle>
+            <CardDescription>
+              Details about the property size and layout
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="beds">Bedrooms</Label>
+                <Input
+                  id="beds"
+                  name="beds"
+                  type="number"
+                  min="0"
+                  value={formData.beds}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="baths">Bathrooms</Label>
+                <Input
+                  id="baths"
+                  name="baths"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formData.baths}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="square_feet">Square Feet</Label>
+                <Input
+                  id="square_feet"
+                  name="square_feet"
+                  type="number"
+                  min="0"
+                  value={formData.square_feet}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Amenities */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Amenities</CardTitle>
+            <CardDescription>
+              Select all amenities that apply to your property
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                "Wifi",
+                "Full kitchen",
+                "Washer & Dryer",
+                "Free Parking",
+                "Swimming Pool",
+                "Hot Tub",
+                "24/7 Security",
+                "Wheelchair Accessible",
+                "Elevator Access",
+                "Dishwasher",
+                "Gym/Fitness Center",
+                "Air Conditioning",
+                "Balcony/Patio",
+                "Smart TV",
+                "Coffee Maker",
+              ].map((amenity) => (
+                <div key={amenity} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
+                    checked={formData.amenities.includes(amenity)}
+                    onCheckedChange={(checked) =>
+                      handleAmenitiesChange(amenity, checked as boolean)
+                    }
+                  />
+                  <Label
+                    htmlFor={`amenity_${amenity
+                      .toLowerCase()
+                      .replace(/ /g, "_")}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {amenity}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rates */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Pricing
+            </CardTitle>
+            <CardDescription>
+              Set your rental rates (leave blank if not applicable)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="rates.nightly">Nightly Rate ($)</Label>
+                <Input
+                  id="rates.nightly"
+                  name="rates.nightly"
+                  type="number"
+                  min="0"
+                  placeholder="150"
+                  value={formData.rates.nightly || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rates.weekly">Weekly Rate ($)</Label>
+                <Input
+                  id="rates.weekly"
+                  name="rates.weekly"
+                  type="number"
+                  min="0"
+                  placeholder="1000"
+                  value={formData.rates.weekly || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rates.monthly">Monthly Rate ($)</Label>
+                <Input
+                  id="rates.monthly"
+                  name="rates.monthly"
+                  type="number"
+                  min="0"
+                  placeholder="3500"
+                  value={formData.rates.monthly || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Seller Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Contact Information
+            </CardTitle>
+            <CardDescription>
+              Your contact details for potential renters
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="seller_info.name">Full Name</Label>
+              <Input
+                id="seller_info.name"
+                name="seller_info.name"
+                placeholder="John Doe"
+                value={formData.seller_info.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seller_info.email">Email Address</Label>
+              <Input
+                id="seller_info.email"
+                name="seller_info.email"
+                type="email"
+                placeholder="john@example.com"
+                value={formData.seller_info.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seller_info.phone">Phone Number</Label>
+              <Input
+                id="seller_info.phone"
+                name="seller_info.phone"
+                type="tel"
+                placeholder="(555) 123-4567"
+                value={formData.seller_info.phone}
+                onChange={handleChange}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Images */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Property Images
+            </CardTitle>
+            <CardDescription>
+              Upload photos of your property to attract more renters
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="images">Select Images</Label>
+              <Input
+                id="images"
+                name="images"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageChange}
+                className="cursor-pointer"
+              />
+              <p className="text-sm text-muted-foreground">
+                You can select multiple images at once
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Submit Button */}
+        <div className="flex justify-center pt-6">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={loading}
+            className="min-w-[200px]"
+          >
+            {loading ? "Creating Property..." : "Create Property"}
+          </Button>
         </div>
-      </div>
-
-      <div className="mb-4 bg-blue-50 p-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Rates (Leave blank if not applicable)
-        </label>
-        <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-          <div className="flex items-center">
-            <label htmlFor="rate.weekly" className="mr-2">
-              Weekly
-            </label>
-            <input
-              type="number"
-              name="rates.weekly"
-              className="border rounded w-full py-2 px-3"
-              value={formData.rates.weekly || ""}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor="rate.monthly" className="mr-2">
-              Monthly
-            </label>
-            <input
-              type="number"
-              name="rates.monthly"
-              className="border rounded w-full py-2 px-3"
-              value={formData.rates.monthly || ""}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor="rate.nightly" className="mr-2">
-              Nightly
-            </label>
-            <input
-              type="number"
-              name="rates.nightly"
-              className="border rounded w-full py-2 px-3"
-              value={formData.rates.nightly || ""}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-4 bg-blue-50 p-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Seller Information
-        </label>
-        <input
-          type="text"
-          name="seller_info.name"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Name"
-          value={formData.seller_info.name}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="seller_info.email"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Email"
-          value={formData.seller_info.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="tel"
-          name="seller_info.phone"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Phone"
-          value={formData.seller_info.phone}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">Images</label>
-        <input
-          type="file"
-          name="images"
-          multiple
-          className="border rounded w-full py-2 px-3"
-          onChange={handleImageChange}
-        />
-      </div>
-
-      <div className="text-center">
-        <button
-          type="submit"
-          className={`bg-blue-500 text-white py-2 px-4 rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={loading}
-        >
-          {loading ? "Submitting..." : "Submit"}
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

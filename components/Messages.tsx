@@ -1,9 +1,13 @@
 "use client";
 import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 import { format } from "date-fns";
-
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Mail, Phone, Trash2, Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Messages({ message }: any) {
   const [isRead, setIsRead] = useState(message.read);
@@ -39,72 +43,93 @@ export default function Messages({ message }: any) {
       if (res.status === 200) {
         setIsDeleted(true);
         setUnreadCount((prev) => prev - 1);
-        toast.success("Message  Deleted successfully");
+        toast.success("Message Deleted successfully");
       }
     } catch (error) {
       console.error("Error:", error);
     }
   }
   if (isDeleted) return null;
+
   return (
-    <div className="space-y-4">
-      <div className="relative bg-white p-4 rounded-md shadow-md border border-gray-200">
-        {!isRead && (
-          <div className="absolute  top-2 right-2  text-white bg-blue-500 px-2 py-1 rounded-md">
-            New
+    <Card
+      className={`transition-all duration-200 my-4 ${
+        !isRead ? "border-l-4 border-l-blue-500 bg-blue-50/20" : ""
+      }`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-medium text-gray-900">
+              {message?.property?.name}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {format(new Date(message?.updatedAt), "MMM d, yyyy")}
+            </p>
           </div>
-        )}
-        <h2 className="text-xl mb-4">
-          <span className="font-bold">
-            Property Inquiry: {message?.property?.name}
-          </span>
-        </h2>
-        <p className="text-gray-700">{message?.body}</p>
+          {!isRead && (
+            <Badge variant="secondary" className="text-xs">
+              New
+            </Badge>
+          )}
+        </div>
 
-        <ul className="mt-4">
-          <li>
-            <strong>Name:</strong> {message.name}
-          </li>
+        <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+          {message?.body}
+        </p>
 
-          <li>
-            <strong>Reply Email:</strong>
-            <a href="mailto:recipient@example.com" className="text-blue-500">
+        <div className="text-xs text-gray-600 space-y-1 mb-3">
+          <div className="flex items-center gap-2">
+            <Mail className="h-3 w-3" />
+            <span className="font-medium">{message.name}</span>
+            <a
+              href={`mailto:${message?.email}`}
+              className="text-blue-600 hover:underline"
+            >
               {message?.email}
             </a>
-          </li>
-          <li>
-            <strong>Reply Phone:</strong>
-            <a href="tel:123-456-7890" className="text-blue-500">
-              {message?.phone}
-            </a>
-          </li>
-          <li>
-            <strong>Received: </strong>
-            {format(new Date(message?.updatedAt), "MMMM d, yyyy, h:mm a")}
-          </li>
-        </ul>
-        {isRead ? (
-          <button
+          </div>
+          {message?.phone && (
+            <div className="flex items-center gap-2">
+              <Phone className="h-3 w-3" />
+              <a
+                href={`tel:${message?.phone}`}
+                className="text-blue-600 hover:underline"
+              >
+                {message?.phone}
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <Button
             onClick={handleReadClick}
-            className="mt-4 mr-3 bg-green-500 text-white py-1 px-3 rounded-md"
+            variant="ghost"
+            size="sm"
+            className={cn("h-7 px-2 text-xs", {
+              "bg-green-400 text-white": isRead,
+              "bg-blue-500 text-white": !isRead,
+            })}
           >
-            Mark As New
-          </button>
-        ) : (
-          <button
-            onClick={handleReadClick}
-            className="mt-4 mr-3 bg-blue-500 text-white py-1 px-3 rounded-md"
+            {isRead ? (
+              <EyeOff className="h-3 w-3 mr-1" />
+            ) : (
+              <Eye className="h-3 w-3 mr-1" />
+            )}
+            {isRead ? "Mark as New" : "Mark as Read"}
+          </Button>
+          <Button
+            onClick={handleDeleteMsg}
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs bg-red-600 text-white "
           >
-            Mark As Read
-          </button>
-        )}
-        <button
-          onClick={handleDeleteMsg}
-          className="mt-4 bg-red-500 text-white py-1 px-3 rounded-md"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -10,11 +10,13 @@ async function fetchProperties() {
       return { properties: [] };
     }
 
-    const res = await axios.get(`${apiDomain}/api/properties`, {
+    const baseApi = apiDomain.endsWith("/api") ? apiDomain : `${apiDomain}/api`;
+
+    const res = await axios.get(`${baseApi}/properties`, {
       headers: {
         "Cache-Control": "max-age=0",
       },
-      timeout: 10000, // 10 second timeout
+      timeout: 20000, // 20 second timeout to accommodate initial DB connection
     });
 
     if (res.status !== 200) {
@@ -39,8 +41,10 @@ async function fetchProperty(id: string) {
       return null;
     }
 
-    const res = await axios.get(`${apiDomain}/api/properties/${id}`, {
-      timeout: 10000, // 10 second timeout
+    const baseApi = apiDomain.endsWith("/api") ? apiDomain : `${apiDomain}/api`;
+
+    const res = await axios.get(`${baseApi}/properties/${id}`, {
+      timeout: 20000, // 20 second timeout
     });
 
     if (res.status !== 200) {

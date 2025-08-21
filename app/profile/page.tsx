@@ -2,15 +2,16 @@
 
 import ProfileUserInfo from "@/components/ProfileuserInfo";
 import Spinner from "@/components/Spinner";
-import { PropertyType } from "@/types/types";
-import { authOptions } from "@/utils/authOptions";
-import { getServerSession, Session } from "next-auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { DELETE } from "../api/properties/[id]/route";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { MapPin, Edit, Trash2, Bed, Bath, Square } from "lucide-react";
 
 export default function Page() {
   const { data: session }: { data: Session | any } = useSession();
@@ -64,52 +65,158 @@ export default function Page() {
   }
   if (loading) return <Spinner />;
   return (
-    <section className="bg-blue-50">
-      <div className="container m-auto py-24">
-        <div className="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
-          <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
-          <div className="flex flex-col md:flex-col">
+    <section className="bg-gray-50 min-h-screen">
+      <div className="container mx-auto py-8 px-4">
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
             <ProfileUserInfo />
 
-            <div className="mt-10 ">
-              <h2 className="text-2xl font-bold mb-4">Your Listings</h2>
-              {properties.map((property: any) => (
-                <div key={property.id} className="mb-10">
-                  <Link href={`/properties/${property._id}`}>
-                    <Image
-                      width={500}
-                      height={500}
-                      className="h-32 w-full rounded-md object-cover"
-                      src={property?.images?.[0]}
-                      alt="Property 1"
-                    />
-                  </Link>
-                  <div className="mt-2">
-                    <p className="text-lg font-semibold">{property?.name}</p>
-                    <p className="text-gray-600">
-                      Address: {property?.street}{" "}
-                    </p>
+            <div className="mt-10">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Your Listings</h2>
+                <Badge variant="secondary" className="text-sm">
+                  {properties.length}{" "}
+                  {properties.length === 1 ? "Property" : "Properties"}
+                </Badge>
+              </div>
+
+              {properties.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <Square className="w-16 h-16 mx-auto" />
                   </div>
-                  <div className="mt-2">
-                    <Link
-                      href={`/properties/${property._id}/edit`}
-                      className="bg-blue-500 text-white px-3 py-3 rounded-md mr-2 hover:bg-blue-600"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(property._id)}
-                      className="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600"
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No properties yet
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    Start by adding your first property listing
+                  </p>
+                  <Button asChild>
+                    <Link href="/properties/add">Add Property</Link>
+                  </Button>
                 </div>
-              ))}
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {properties.map((property: any) => (
+                    <Card
+                      key={property._id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      <div className="relative">
+                        <Link href={`/properties/${property._id}`}>
+                          <Image
+                            width={400}
+                            height={250}
+                            className="h-48 w-full object-cover hover:scale-105 transition-transform duration-300"
+                            src={
+                              property?.images?.[0] ||
+                              "/placeholder.svg?height=250&width=400"
+                            }
+                            alt={property?.name || "Property"}
+                          />
+                        </Link>
+                        {property?.type && (
+                          <Badge className="absolute top-3 left-3 bg-white/90 text-gray-900 hover:bg-white">
+                            {property.type}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="font-semibold text-lg line-clamp-1">
+                              {property?.name}
+                            </h3>
+                            <div className="flex items-center text-gray-600 text-sm mt-1">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              <span className="line-clamp-1">
+                                {property?.location?.street || property?.street}
+                                , {property?.location?.city || "Unknown City"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {(property?.beds ||
+                            property?.baths ||
+                            property?.square_feet) && (
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              {property?.beds && (
+                                <div className="flex items-center gap-1">
+                                  <Bed className="w-4 h-4" />
+                                  <span>{property.beds}</span>
+                                </div>
+                              )}
+                              {property?.baths && (
+                                <div className="flex items-center gap-1">
+                                  <Bath className="w-4 h-4" />
+                                  <span>{property.baths}</span>
+                                </div>
+                              )}
+                              {property?.square_feet && (
+                                <div className="flex items-center gap-1">
+                                  <Square className="w-4 h-4" />
+                                  <span>{property.square_feet} sq ft</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {property?.rates && (
+                            <div className="text-sm">
+                              {property.rates.monthly && (
+                                <p className="font-semibold text-green-600">
+                                  ${property.rates.monthly}/month
+                                </p>
+                              )}
+                              {!property.rates.monthly &&
+                                property.rates.weekly && (
+                                  <p className="font-semibold text-green-600">
+                                    ${property.rates.weekly}/week
+                                  </p>
+                                )}
+                              {!property.rates.monthly &&
+                                !property.rates.weekly &&
+                                property.rates.nightly && (
+                                  <p className="font-semibold text-green-600">
+                                    ${property.rates.nightly}/night
+                                  </p>
+                                )}
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              asChild
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 bg-transparent"
+                            >
+                              <Link href={`/properties/${property._id}/edit`}>
+                                <Edit className="w-4 h-4 mr-1" />
+                                Edit
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => handleDelete(property._id)}
+                              variant="destructive"
+                              size="sm"
+                              className="flex-1"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

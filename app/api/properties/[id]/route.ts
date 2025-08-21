@@ -1,5 +1,6 @@
 import connectDB from "@/config/database";
 import Property from "@/models/Property";
+import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
 import { private_safeAlpha } from "@mui/system";
 
@@ -37,6 +38,8 @@ export const DELETE = async (request: any, { params }: { params: any }) => {
       return new Response("unauthorized   ", { status: 401 });
     }
     await property.deleteOne();
+    // Cascade delete messages linked to this property to avoid orphaned messages
+    await Messages.deleteMany({ property: propertyId });
     return new Response("property deleted  ", { status: 200 });
   } catch (error) {
     console.log(error);

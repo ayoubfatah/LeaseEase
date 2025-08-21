@@ -23,7 +23,7 @@ export default function InfoBoxes() {
             btnText={"Add Property"}
             btnColor={"bg-slate-700"}
             btnTextColor={"text-white"}
-            btnHref={"/add-property"}
+            btnHref={"/properties/add"}
           >
             List your properties and reach potential tenants. Rent as an airbnb
             or long term.
