@@ -27,60 +27,115 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Home, DollarSign, User, Loader2 } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// Zod schema aligned with add form
+const propertySchema = z.object({
+  name: z.string().min(1, "Property name is required"),
+  type: z.string().min(1, "Property type is required"),
+  description: z.string().optional(),
+  location: z.object({
+    street: z.string().optional(),
+    city: z.string().min(1, "City is required"),
+    state: z.string().min(1, "State is required"),
+    zipcode: z.string().optional(),
+  }),
+  beds: z.number().min(0, "Bedrooms must be 0 or greater"),
+  baths: z.number().min(0, "Bathrooms must be 0 or greater"),
+  square_feet: z.number().min(1, "Square feet must be greater than 0"),
+  amenities: z.array(z.string()).default([]),
+  rates: z.object({
+    nightly: z.number().min(0).optional().nullable(),
+    weekly: z.number().min(0).optional().nullable(),
+    monthly: z.number().min(0).optional().nullable(),
+  }),
+  seller_info: z.object({
+    name: z.string().min(1, "Contact name is required"),
+    email: z.string().email("Valid email address is required"),
+    phone: z.string().optional(),
+  }),
+});
+
+type PropertyFormData = z.input<typeof propertySchema>;
 
 const PropertyEditForm = () => {
   const { id } = useParams();
   const router = useRouter();
 
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState<any>({
-    type: "",
-    name: "",
-    description: "",
-    location: {
-      street: "",
-      city: "",
-      state: "",
-      zipcode: "",
-    },
-    beds: 0,
-    baths: 0,
-    square_feet: 0,
-    amenities: ["", ""],
-    rates: {
-      weekly: 0,
-      monthly: 0,
-      nightly: 0,
-    },
-    seller_info: {
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: "Apartment",
       name: "",
-      email: "",
-      phone: "",
+      description: "",
+      location: {
+        street: "",
+        city: "",
+        state: "",
+        zipcode: "",
+      },
+      beds: 0,
+      baths: 0,
+      square_feet: 0,
+      amenities: [],
+      rates: {
+        nightly: null,
+        weekly: null,
+        monthly: null,
+      },
+      seller_info: {
+        name: "",
+        email: "",
+        phone: "",
+      },
     },
   });
 
+  const watchedAmenities = watch("amenities");
+
   useEffect(() => {
     async function fetchPropertyData() {
-      if (!id) {
-        return;
-      }
+      if (!id) return;
       try {
         const data = await fetchProperty(id as string);
-        // check rates for null if so make it 0
-        if (data && !data.rates) {
-          const defaultRates = { ...data.rates };
-          for (const key in defaultRates) {
-            if (defaultRates[key] === null) {
-              defaultRates[key] = 0;
-            }
-          }
-          data.rates = defaultRates;
-        }
-        setFormData(data);
-        setLoading(false);
+        const normalized: PropertyFormData = {
+          type: data.type || "Apartment",
+          name: data.name || "",
+          description: data.description || "",
+          location: {
+            street: data.location?.street || "",
+            city: data.location?.city || "",
+            state: data.location?.state || "",
+            zipcode: data.location?.zipcode || "",
+          },
+          beds: Number(data.beds ?? 0),
+          baths: Number(data.baths ?? 0),
+          square_feet: Number(data.square_feet ?? 0),
+          amenities: Array.isArray(data.amenities) ? data.amenities : [],
+          rates: {
+            nightly: data.rates?.nightly ?? null,
+            weekly: data.rates?.weekly ?? null,
+            monthly: data.rates?.monthly ?? null,
+          },
+          seller_info: {
+            name: data.seller_info?.name || "",
+            email: data.seller_info?.email || "",
+            phone: data.seller_info?.phone || "",
+          },
+        };
+        reset(normalized);
       } catch (error) {
         console.log(error);
       } finally {
@@ -88,76 +143,73 @@ const PropertyEditForm = () => {
       }
     }
     fetchPropertyData();
-  }, [id]);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    // checking if its nested property
-    if (name.includes(".")) {
-      const [outerKey, innerKey] = name.split(".");
-      setFormData((prevData: any) => ({
-        ...prevData,
-        [outerKey]: {
-          ...prevData[outerKey],
-          [innerKey]: value,
-        },
-      }));
-      // not nested
-    } else {
-      setFormData((prevData: any) => ({ ...prevData, [name]: value }));
-    }
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData((prevData: any) => ({ ...prevData, type: value }));
-  };
+  }, [id, reset]);
 
   const handleAmenitiesChange = (amenity: string, checked: boolean) => {
-    const amenities = [...formData.amenities];
+    const currentAmenities = watchedAmenities || [];
     if (checked) {
-      amenities.push(amenity);
+      setValue("amenities", [...currentAmenities, amenity]);
     } else {
-      const index = amenities.indexOf(amenity);
-      if (index !== -1) {
-        amenities.splice(index, 1);
-      }
+      setValue(
+        "amenities",
+        currentAmenities.filter((a) => a !== amenity)
+      );
     }
-    setFormData((prev: any) => ({
-      ...prev,
-      amenities: amenities,
-    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
+  const onSubmit = async (data: PropertyFormData) => {
     try {
-      const formDataToSend = new FormData(e.target as HTMLFormElement);
+      const formData = new FormData();
+
+      formData.append("name", data.name);
+      formData.append("type", data.type);
+      if (data.description) formData.append("description", data.description);
+
+      if (data.location.street)
+        formData.append("location.street", data.location.street);
+      formData.append("location.city", data.location.city);
+      formData.append("location.state", data.location.state);
+      if (data.location.zipcode)
+        formData.append("location.zipcode", data.location.zipcode);
+
+      formData.append("beds", data.beds.toString());
+      formData.append("baths", data.baths.toString());
+      formData.append("square_feet", data.square_feet.toString());
+
+      (data.amenities ?? []).forEach((amenity) => {
+        formData.append("amenities", amenity);
+      });
+
+      if (data.rates.nightly)
+        formData.append("rates.nightly", data.rates.nightly.toString());
+      if (data.rates.weekly)
+        formData.append("rates.weekly", data.rates.weekly.toString());
+      if (data.rates.monthly)
+        formData.append("rates.monthly", data.rates.monthly.toString());
+
+      formData.append("seller_info.name", data.seller_info.name);
+      formData.append("seller_info.email", data.seller_info.email);
+      if (data.seller_info.phone)
+        formData.append("seller_info.phone", data.seller_info.phone);
+
       const res = await fetch(`/api/properties/${id}`, {
         method: "PUT",
-        body: formDataToSend,
+        body: formData,
       });
 
       if (res.ok) {
         toast.success("Property updated successfully");
         router.push(`/properties/${id}`);
-      }
-      if (res.status === 401 || res.status === 403) {
+      } else if (res.status === 401 || res.status === 403) {
         toast.error("Permission denied");
-      }
-      if (res.status === 404) {
+      } else if (res.status === 404) {
         toast.error("Something went wrong");
+      } else {
+        toast.error("Failed to update property");
       }
     } catch (error) {
       toast.error("Something went wrong");
       console.log(error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -201,7 +253,7 @@ const PropertyEditForm = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <Card>
           <CardHeader className="flex flex-row items-center space-y-0 pb-4">
             <Home className="h-5 w-5 mr-2 text-primary" />
@@ -215,38 +267,48 @@ const PropertyEditForm = () => {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="type">Property Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={handleSelectChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select property type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Apartment">Apartment</SelectItem>
-                    <SelectItem value="Condo">Condo</SelectItem>
-                    <SelectItem value="House">House</SelectItem>
-                    <SelectItem value="CabinOrCottage">
-                      Cabin or Cottage
-                    </SelectItem>
-                    <SelectItem value="Room">Room</SelectItem>
-                    <SelectItem value="Studio">Studio</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="type">
+                  Property Type <span className="text-red-500">*</span>
+                </Label>
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select property type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Apartment">Apartment</SelectItem>
+                        <SelectItem value="Condo">Condo</SelectItem>
+                        <SelectItem value="House">House</SelectItem>
+                        <SelectItem value="CabinOrCottage">
+                          Cabin or Cottage
+                        </SelectItem>
+                        <SelectItem value="Room">Room</SelectItem>
+                        <SelectItem value="Studio">Studio</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.type && (
+                  <p className="text-sm text-red-500">{errors.type.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Listing Name</Label>
+                <Label htmlFor="name">
+                  Listing Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
-                  name="name"
+                  {...register("name")}
                   placeholder="e.g. Beautiful Apartment In Miami"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
               </div>
             </div>
 
@@ -254,13 +316,16 @@ const PropertyEditForm = () => {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                name="description"
                 rows={4}
                 placeholder="Add an optional description of your property"
-                value={formData.description}
-                onChange={handleChange}
+                {...register("description")}
                 className="resize-none"
               />
+              {errors.description && (
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -279,46 +344,60 @@ const PropertyEditForm = () => {
                 <Label htmlFor="street">Street Address</Label>
                 <Input
                   id="street"
-                  name="location.street"
+                  {...register("location.street")}
                   placeholder="123 Main Street"
-                  value={formData.location.street}
-                  onChange={handleChange}
                 />
+                {errors.location?.street && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.street.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
+                <Label htmlFor="city">
+                  City <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="city"
-                  name="location.city"
+                  {...register("location.city")}
                   placeholder="Miami"
-                  value={formData.location.city}
-                  onChange={handleChange}
-                  required
                 />
+                {errors.location?.city && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.city.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="state">State *</Label>
+                <Label htmlFor="state">
+                  State <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="state"
-                  name="location.state"
+                  {...register("location.state")}
                   placeholder="FL"
-                  value={formData.location.state}
-                  onChange={handleChange}
-                  required
                 />
+                {errors.location?.state && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.state.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="zipcode">Zip Code</Label>
                 <Input
                   id="zipcode"
-                  name="location.zipcode"
+                  {...register("location.zipcode")}
                   placeholder="33101"
-                  value={formData.location.zipcode}
-                  onChange={handleChange}
                 />
+                {errors.location?.zipcode && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.zipcode.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -332,43 +411,51 @@ const PropertyEditForm = () => {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="beds">Bedrooms *</Label>
+                <Label htmlFor="beds">
+                  Bedrooms <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="beds"
-                  name="beds"
                   type="number"
                   min="0"
-                  value={formData.beds}
-                  onChange={handleChange}
-                  required
+                  {...register("beds", { valueAsNumber: true })}
                 />
+                {errors.beds && (
+                  <p className="text-sm text-red-500">{errors.beds.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="baths">Bathrooms *</Label>
+                <Label htmlFor="baths">
+                  Bathrooms <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="baths"
-                  name="baths"
                   type="number"
                   min="0"
                   step="0.5"
-                  value={formData.baths}
-                  onChange={handleChange}
-                  required
+                  {...register("baths", { valueAsNumber: true })}
                 />
+                {errors.baths && (
+                  <p className="text-sm text-red-500">{errors.baths.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="square_feet">Square Feet *</Label>
+                <Label htmlFor="square_feet">
+                  Square Feet <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="square_feet"
-                  name="square_feet"
                   type="number"
                   min="0"
-                  value={formData.square_feet}
-                  onChange={handleChange}
-                  required
+                  {...register("square_feet", { valueAsNumber: true })}
                 />
+                {errors.square_feet && (
+                  <p className="text-sm text-red-500">
+                    {errors.square_feet.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -387,7 +474,7 @@ const PropertyEditForm = () => {
                 <div key={amenity} className="flex items-center space-x-2">
                   <Checkbox
                     id={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
-                    checked={formData.amenities.includes(amenity)}
+                    checked={watchedAmenities?.includes(amenity) || false}
                     onCheckedChange={(checked) =>
                       handleAmenitiesChange(amenity, checked as boolean)
                     }
@@ -403,6 +490,9 @@ const PropertyEditForm = () => {
                 </div>
               ))}
             </div>
+            {errors.amenities && (
+              <p className="text-sm text-red-500">{errors.amenities.message}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -426,13 +516,14 @@ const PropertyEditForm = () => {
                   </span>
                   <Input
                     id="weekly"
-                    name="rates.weekly"
                     type="number"
                     min="0"
                     className="pl-8"
                     placeholder="0"
-                    value={formData.rates.weekly || ""}
-                    onChange={handleChange}
+                    {...register("rates.weekly", {
+                      valueAsNumber: true,
+                      setValueAs: (v) => (v === "" ? null : v),
+                    })}
                   />
                 </div>
               </div>
@@ -445,13 +536,14 @@ const PropertyEditForm = () => {
                   </span>
                   <Input
                     id="monthly"
-                    name="rates.monthly"
                     type="number"
                     min="0"
                     className="pl-8"
                     placeholder="0"
-                    value={formData.rates.monthly || ""}
-                    onChange={handleChange}
+                    {...register("rates.monthly", {
+                      valueAsNumber: true,
+                      setValueAs: (v) => (v === "" ? null : v),
+                    })}
                   />
                 </div>
               </div>
@@ -464,13 +556,14 @@ const PropertyEditForm = () => {
                   </span>
                   <Input
                     id="nightly"
-                    name="rates.nightly"
                     type="number"
                     min="0"
                     className="pl-8"
                     placeholder="0"
-                    value={formData.rates.nightly || ""}
-                    onChange={handleChange}
+                    {...register("rates.nightly", {
+                      valueAsNumber: true,
+                      setValueAs: (v) => (v === "" ? null : v),
+                    })}
                   />
                 </div>
               </div>
@@ -491,40 +584,51 @@ const PropertyEditForm = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="seller_name">Full Name *</Label>
+                <Label htmlFor="seller_name">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="seller_name"
-                  name="seller_info.name"
                   placeholder="John Doe"
-                  value={formData.seller_info.name}
-                  onChange={handleChange}
-                  required
+                  {...register("seller_info.name")}
                 />
+                {errors.seller_info?.name && (
+                  <p className="text-sm text-red-500">
+                    {errors.seller_info.name.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="seller_email">Email Address *</Label>
+                <Label htmlFor="seller_email">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="seller_email"
-                  name="seller_info.email"
                   type="email"
                   placeholder="john@example.com"
-                  value={formData.seller_info.email}
-                  onChange={handleChange}
-                  required
+                  {...register("seller_info.email")}
                 />
+                {errors.seller_info?.email && (
+                  <p className="text-sm text-red-500">
+                    {errors.seller_info.email.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="seller_phone">Phone Number</Label>
                 <Input
                   id="seller_phone"
-                  name="seller_info.phone"
                   type="tel"
                   placeholder="(555) 123-4567"
-                  value={formData.seller_info.phone}
-                  onChange={handleChange}
+                  {...register("seller_info.phone")}
                 />
+                {errors.seller_info?.phone && (
+                  <p className="text-sm text-red-500">
+                    {errors.seller_info.phone.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

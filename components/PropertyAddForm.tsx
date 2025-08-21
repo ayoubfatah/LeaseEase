@@ -2,6 +2,9 @@
 import type React from "react";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Card,
   CardContent,
@@ -23,91 +26,167 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Home, MapPin, Bed, DollarSign, User, Upload } from "lucide-react";
 
+// Zod schema based on your Mongoose schema
+const propertySchema = z.object({
+  name: z.string().min(1, "Property name is required"),
+  type: z.string().min(1, "Property type is required"),
+  description: z.string().optional(),
+  location: z.object({
+    street: z.string().optional(),
+    city: z.string().min(1, "City is required"),
+    state: z.string().min(1, "State is required"),
+    zipcode: z.string().optional(),
+  }),
+  beds: z.number().min(0, "Bedrooms must be 0 or greater"),
+  baths: z.number().min(0, "Bathrooms must be 0 or greater"),
+  square_feet: z.number().min(1, "Square feet must be greater than 0"),
+  amenities: z.array(z.string()).default([]),
+  rates: z.object({
+    nightly: z.number().min(0).optional().nullable(),
+    weekly: z.number().min(0).optional().nullable(),
+    monthly: z.number().min(0).optional().nullable(),
+  }),
+  seller_info: z.object({
+    name: z.string().min(1, "Contact name is required"),
+    email: z.string().email("Valid email address is required"),
+    phone: z.string().optional(),
+  }),
+  images: z.array(z.instanceof(File)).optional(),
+});
+
+type PropertyFormData = z.input<typeof propertySchema>;
+
 const PropertyAddForm = () => {
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState<any>({
-    type: "Apartment",
-    name: "Cozy Downtown Apartment",
-    description: "A beautiful apartment in the heart of the city",
-    location: {
-      street: "123 Main St",
-      city: "Anytown",
-      state: "CA",
-      zipcode: "12345",
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: "Apartment",
+      name: "",
+      description: "",
+      location: {
+        street: "",
+        city: "",
+        state: "",
+        zipcode: "",
+      },
+      beds: 0,
+      baths: 0,
+      square_feet: 0,
+      amenities: [],
+      rates: {
+        nightly: null,
+        weekly: null,
+        monthly: null,
+      },
+      seller_info: {
+        name: "",
+        email: "",
+        phone: "",
+      },
+      images: [],
     },
-    beds: 2,
-    baths: 2,
-    square_feet: 1000,
-    amenities: ["Wifi", "Full kitchen"],
-    rates: {
-      weekly: 1000,
-      monthly: 3500,
-      nightly: 150,
-    },
-    seller_info: {
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "123-456-7890",
-    },
-    images: [],
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    // checking if its nested property
-    if (name.includes(".")) {
-      const [outerKey, innerKey] = name.split(".");
-      setFormData((prevData: any) => ({
-        ...prevData,
-        [outerKey]: {
-          ...prevData[outerKey],
-          [innerKey]: value,
-        },
-      }));
-      // not nested
-    } else {
-      setFormData((prevData: any) => ({ ...prevData, [name]: value }));
-    }
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prevData: any) => ({ ...prevData, [name]: value }));
-  };
+  const watchedAmenities = watch("amenities");
+  const watchedImages = watch("images");
 
   const handleAmenitiesChange = (amenity: string, checked: boolean) => {
-    const amenities = [...formData.amenities];
+    const currentAmenities = watchedAmenities || [];
     if (checked) {
-      amenities.push(amenity);
+      setValue("amenities", [...currentAmenities, amenity]);
     } else {
-      const index = amenities.indexOf(amenity);
-      if (index !== -1) {
-        amenities.splice(index, 1);
-      }
+      setValue(
+        "amenities",
+        currentAmenities.filter((a) => a !== amenity)
+      );
     }
-    setFormData((prev: any) => ({
-      ...prev,
-      amenities: amenities,
-    }));
   };
 
-  const handleImageChange = (e: any) => {
-    const { files } = e.target;
-    console.log(files);
-    const updatedImages = [...formData.images];
-    // add new files to the array
-    for (const file of files) {
-      updatedImages.push(file);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setValue("images", fileArray);
     }
-    setFormData((prev: any) => ({ ...prev, images: updatedImages }));
+  };
+
+  const onSubmit = async (data: PropertyFormData) => {
+    setLoading(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+
+      // Add all form fields
+      formData.append("name", data.name);
+      formData.append("type", data.type);
+      if (data.description) formData.append("description", data.description);
+
+      // Location
+      if (data.location.street)
+        formData.append("location.street", data.location.street);
+      formData.append("location.city", data.location.city);
+      formData.append("location.state", data.location.state);
+      if (data.location.zipcode)
+        formData.append("location.zipcode", data.location.zipcode);
+
+      // Property specs
+      formData.append("beds", data.beds.toString());
+      formData.append("baths", data.baths.toString());
+      formData.append("square_feet", data.square_feet.toString());
+
+      // Amenities
+      (data.amenities ?? []).forEach((amenity) => {
+        formData.append("amenities", amenity);
+      });
+
+      // Rates
+      if (data.rates.nightly)
+        formData.append("rates.nightly", data.rates.nightly.toString());
+      if (data.rates.weekly)
+        formData.append("rates.weekly", data.rates.weekly.toString());
+      if (data.rates.monthly)
+        formData.append("rates.monthly", data.rates.monthly.toString());
+
+      // Seller info
+      formData.append("seller_info.name", data.seller_info.name);
+      formData.append("seller_info.email", data.seller_info.email);
+      if (data.seller_info.phone)
+        formData.append("seller_info.phone", data.seller_info.phone);
+
+      // Images
+      if (data.images) {
+        data.images.forEach((image) => {
+          formData.append("images", image);
+        });
+      }
+
+      // Submit to API
+      const response = await fetch("/api/properties", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        // Handle success - redirect or show success message
+        console.log("Property created successfully");
+      } else {
+        // Handle error
+        console.error("Failed to create property");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,12 +196,7 @@ const PropertyAddForm = () => {
         <p className="text-muted-foreground">Create a new property listing</p>
       </div>
 
-      <form
-        action="/api/properties"
-        method="POST"
-        encType="multipart/form-data"
-        className="space-y-8"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Property Details */}
         <Card>
           <CardHeader>
@@ -136,53 +210,63 @@ const PropertyAddForm = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="type">Property Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleSelectChange("type", value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select property type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Apartment">Apartment</SelectItem>
-                  <SelectItem value="Condo">Condo</SelectItem>
-                  <SelectItem value="House">House</SelectItem>
-                  <SelectItem value="CabinOrCottage">
-                    Cabin or Cottage
-                  </SelectItem>
-                  <SelectItem value="Room">Room</SelectItem>
-                  <SelectItem value="Studio">Studio</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              {/* Submit the selected type to the server */}
-              <input type="hidden" name="type" value={formData.type} />
+              <Label htmlFor="type">
+                Property Type <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Apartment">Apartment</SelectItem>
+                      <SelectItem value="Condo">Condo</SelectItem>
+                      <SelectItem value="House">House</SelectItem>
+                      <SelectItem value="CabinOrCottage">
+                        Cabin or Cottage
+                      </SelectItem>
+                      <SelectItem value="Room">Room</SelectItem>
+                      <SelectItem value="Studio">Studio</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.type && (
+                <p className="text-sm text-red-500">{errors.type.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Listing Name</Label>
+              <Label htmlFor="name">
+                Listing Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
-                name="name"
+                {...register("name")}
                 placeholder="e.g. Beautiful Apartment In Miami"
-                value={formData.name}
-                onChange={handleChange}
-                required
               />
+              {errors.name && (
+                <p className="text-sm text-red-500">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                name="description"
+                {...register("description")}
                 placeholder="Add an optional description of your property"
-                value={formData.description}
-                onChange={handleChange}
                 rows={4}
               />
+              {errors.description && (
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -201,44 +285,58 @@ const PropertyAddForm = () => {
               <Label htmlFor="location.street">Street Address</Label>
               <Input
                 id="location.street"
-                name="location.street"
+                {...register("location.street")}
                 placeholder="123 Main Street"
-                value={formData.location.street}
-                onChange={handleChange}
               />
+              {errors.location?.street && (
+                <p className="text-sm text-red-500">
+                  {errors.location.street.message}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="location.city">City</Label>
+                <Label htmlFor="location.city">
+                  City <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="location.city"
-                  name="location.city"
+                  {...register("location.city")}
                   placeholder="City"
-                  value={formData.location.city}
-                  onChange={handleChange}
-                  required
                 />
+                {errors.location?.city && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.city.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location.state">State</Label>
+                <Label htmlFor="location.state">
+                  State <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="location.state"
-                  name="location.state"
+                  {...register("location.state")}
                   placeholder="State"
-                  value={formData.location.state}
-                  onChange={handleChange}
-                  required
                 />
+                {errors.location?.state && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.state.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="location.zipcode">ZIP Code</Label>
                 <Input
                   id="location.zipcode"
-                  name="location.zipcode"
+                  {...register("location.zipcode")}
                   placeholder="12345"
-                  value={formData.location.zipcode}
-                  onChange={handleChange}
                 />
+                {errors.location?.zipcode && (
+                  <p className="text-sm text-red-500">
+                    {errors.location.zipcode.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -258,41 +356,49 @@ const PropertyAddForm = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="beds">Bedrooms</Label>
+                <Label htmlFor="beds">
+                  Bedrooms <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="beds"
-                  name="beds"
                   type="number"
                   min="0"
-                  value={formData.beds}
-                  onChange={handleChange}
-                  required
+                  {...register("beds", { valueAsNumber: true })}
                 />
+                {errors.beds && (
+                  <p className="text-sm text-red-500">{errors.beds.message}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="baths">Bathrooms</Label>
+                <Label htmlFor="baths">
+                  Bathrooms <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="baths"
-                  name="baths"
                   type="number"
                   min="0"
                   step="0.5"
-                  value={formData.baths}
-                  onChange={handleChange}
-                  required
+                  {...register("baths", { valueAsNumber: true })}
                 />
+                {errors.baths && (
+                  <p className="text-sm text-red-500">{errors.baths.message}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="square_feet">Square Feet</Label>
+                <Label htmlFor="square_feet">
+                  Square Feet <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="square_feet"
-                  name="square_feet"
                   type="number"
                   min="0"
-                  value={formData.square_feet}
-                  onChange={handleChange}
-                  required
+                  {...register("square_feet", { valueAsNumber: true })}
                 />
+                {errors.square_feet && (
+                  <p className="text-sm text-red-500">
+                    {errors.square_feet.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -328,7 +434,7 @@ const PropertyAddForm = () => {
                 <div key={amenity} className="flex items-center space-x-2">
                   <Checkbox
                     id={`amenity_${amenity.toLowerCase().replace(/ /g, "_")}`}
-                    checked={formData.amenities.includes(amenity)}
+                    checked={watchedAmenities?.includes(amenity) || false}
                     onCheckedChange={(checked) =>
                       handleAmenitiesChange(amenity, checked as boolean)
                     }
@@ -344,6 +450,9 @@ const PropertyAddForm = () => {
                 </div>
               ))}
             </div>
+            {errors.amenities && (
+              <p className="text-sm text-red-500">{errors.amenities.message}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -364,37 +473,55 @@ const PropertyAddForm = () => {
                 <Label htmlFor="rates.nightly">Nightly Rate ($)</Label>
                 <Input
                   id="rates.nightly"
-                  name="rates.nightly"
                   type="number"
                   min="0"
                   placeholder="150"
-                  value={formData.rates.nightly || ""}
-                  onChange={handleChange}
+                  {...register("rates.nightly", {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === "" ? null : v),
+                  })}
                 />
+                {errors.rates?.nightly && (
+                  <p className="text-sm text-red-500">
+                    {errors.rates.nightly.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="rates.weekly">Weekly Rate ($)</Label>
                 <Input
                   id="rates.weekly"
-                  name="rates.weekly"
                   type="number"
                   min="0"
                   placeholder="1000"
-                  value={formData.rates.weekly || ""}
-                  onChange={handleChange}
+                  {...register("rates.weekly", {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === "" ? null : v),
+                  })}
                 />
+                {errors.rates?.weekly && (
+                  <p className="text-sm text-red-500">
+                    {errors.rates.weekly.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="rates.monthly">Monthly Rate ($)</Label>
                 <Input
                   id="rates.monthly"
-                  name="rates.monthly"
                   type="number"
                   min="0"
                   placeholder="3500"
-                  value={formData.rates.monthly || ""}
-                  onChange={handleChange}
+                  {...register("rates.monthly", {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === "" ? null : v),
+                  })}
                 />
+                {errors.rates?.monthly && (
+                  <p className="text-sm text-red-500">
+                    {errors.rates.monthly.message}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -413,38 +540,49 @@ const PropertyAddForm = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="seller_info.name">Full Name</Label>
+              <Label htmlFor="seller_info.name">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="seller_info.name"
-                name="seller_info.name"
+                {...register("seller_info.name")}
                 placeholder="John Doe"
-                value={formData.seller_info.name}
-                onChange={handleChange}
-                required
               />
+              {errors.seller_info?.name && (
+                <p className="text-sm text-red-500">
+                  {errors.seller_info.name.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="seller_info.email">Email Address</Label>
+              <Label htmlFor="seller_info.email">
+                Email Address <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="seller_info.email"
-                name="seller_info.email"
                 type="email"
+                {...register("seller_info.email")}
                 placeholder="john@example.com"
-                value={formData.seller_info.email}
-                onChange={handleChange}
-                required
               />
+              {errors.seller_info?.email && (
+                <p className="text-sm text-red-500">
+                  {errors.seller_info.email.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="seller_info.phone">Phone Number</Label>
               <Input
                 id="seller_info.phone"
-                name="seller_info.phone"
                 type="tel"
+                {...register("seller_info.phone")}
                 placeholder="(555) 123-4567"
-                value={formData.seller_info.phone}
-                onChange={handleChange}
               />
+              {errors.seller_info?.phone && (
+                <p className="text-sm text-red-500">
+                  {errors.seller_info.phone.message}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -465,7 +603,6 @@ const PropertyAddForm = () => {
               <Label htmlFor="images">Select Images</Label>
               <Input
                 id="images"
-                name="images"
                 type="file"
                 multiple
                 accept="image/*"
@@ -475,6 +612,14 @@ const PropertyAddForm = () => {
               <p className="text-sm text-muted-foreground">
                 You can select multiple images at once
               </p>
+              {watchedImages && watchedImages.length > 0 && (
+                <p className="text-sm text-green-600">
+                  {watchedImages.length} image(s) selected
+                </p>
+              )}
+              {errors.images && (
+                <p className="text-sm text-red-500">{errors.images.message}</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -9,7 +9,9 @@ export const GET = async (request: any, { params }: any) => {
     if (!userId) {
       return new Response("User id is required", { status: 400 });
     }
-    const properties = await Property.find({ owner: userId });
+    const properties = await Property.find({ owner: userId }).sort({
+      createdAt: -1,
+    });
 
     if (!properties) {
       console.log("Property not found.");

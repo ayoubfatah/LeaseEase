@@ -29,7 +29,7 @@ export const GET = async (request: any) => {
       query.type = typePattern;
     }
 
-    const properties = await Property.find(query);
+    const properties = await Property.find(query).sort({ createdAt: -1 });
 
     console.log(location, propertyType);
     console.log(query);
