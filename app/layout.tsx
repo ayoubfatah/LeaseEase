@@ -37,11 +37,11 @@ export default function RootLayout({
       <LeaseProvider>
         <AuthProvider>
           <html lang="en">
-            <body>
+            <body className="flex flex-col min-h-screen">
               <NavBar />
-              <main>{children}</main>
-              <ToastContainer />
+              <main className="flex-1">{children}</main>
               <Footer />
+              <ToastContainer />
             </body>
           </html>
         </AuthProvider>

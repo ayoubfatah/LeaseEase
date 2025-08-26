@@ -4,6 +4,8 @@ import { PropertyType } from "@/types/types";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // If using App Router
+
 import { useDebounce } from "@/app/customHooks/useDebouncing";
 
 export default function ContactForm({ property }: { property: PropertyType }) {
@@ -15,54 +17,61 @@ export default function ContactForm({ property }: { property: PropertyType }) {
   const debounce = useDebounce(2000);
 
   // Create the debounced submit handler
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Wrap the submission logic in debounce
     await debounce(async () => {
       if (!session || !session.user) {
         toast.error("You must be logged in to send a message.");
         return;
       }
 
-      const { id, name, email, phone } = session.user as {
-        id: string;
-        name?: string;
-        email?: string;
-        phone?: string;
-      };
-
-      const data = {
-        sender: id,
-        recipient: property.owner,
-        property: property._id,
-        name: name || "",
-        email: email || "",
-        phone: phone || "",
-        message,
-      };
+      const participantId = property.owner;
+      const propertyId = property._id;
 
       try {
-        const res = await fetch("/api/messages", {
+        // STEP 1: Get or create the conversation
+        const conversationRes = await fetch("/api/conversations", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ participantId, propertyId }),
         });
 
-        if (res.status === 200) {
+        if (!conversationRes.ok) {
+          const err = await conversationRes.json();
+          toast.error(err.message || "Failed to start conversation");
+          return;
+        }
+
+        const conversation = await conversationRes.json();
+        const conversationId = conversation._id;
+
+        // STEP 2: Send the message
+        const messageRes = await fetch(`/api/conversations/${conversationId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ body: message }),
+        });
+
+        if (messageRes.status === 201) {
           toast.success("Your message has been sent!");
           setWasSubmitted(true);
-        } else if (res.status === 400 || res.status === 401) {
-          const dataObj = await res.json();
-          toast.error(dataObj.message);
+
+          // Optional: redirect to the conversation
+          router.push(`/conversations/${conversationId}`);
         } else {
-          toast.error("Failed to send message");
+          const err = await messageRes.json();
+          toast.error(err.message || "Failed to send message");
         }
       } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to send message");
+        console.error("Message sending error:", error);
+        toast.error("Something went wrong.");
       } finally {
         setMessage("");
       }

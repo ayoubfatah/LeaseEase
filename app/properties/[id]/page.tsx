@@ -1,13 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProperty } from "@/utils/request";
 import { FaArrowLeft } from "react-icons/fa";
 import Link from "next/link";
 import PropertyHeaderImage from "@/components/PropertyHeaderImage";
-import { PropertyType } from "@/types/types";
+import type { PropertyType } from "@/types/types";
 import PropertyDetails from "@/components/PropertyDetails";
 import Spinner from "@/components/Spinner";
 import PropertyImages from "@/components/PropertyImages";
@@ -36,8 +35,8 @@ export default function PropertyPage() {
 
   return (
     <>
-      <section>
-        <PropertyHeaderImage image={property.images[0]} />
+      <section className="h-full">
+        <PropertyHeaderImage image={property.images[0]} property={property} />
         <div className="container m-auto py-6 px-6">
           <Link
             href="/properties"

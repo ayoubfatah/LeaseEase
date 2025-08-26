@@ -13,7 +13,7 @@ export default function ReactQueryProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,   
+            staleTime: 60 * 1000,
           },
         },
       })
@@ -23,4 +23,3 @@ export default function ReactQueryProvider({
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
- 

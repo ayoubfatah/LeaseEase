@@ -40,7 +40,7 @@ export default function SearchResultPage() {
   return (
     <>
       <SearchInput />
-      <section className="px-4 py-6 h-lvh">
+      <section className="px-4 py-6 h-[100vh] overflow-scroll">
         <div className="container-xl lg:container m-auto px-4 py-6">
           <Link
             href="/properties"
