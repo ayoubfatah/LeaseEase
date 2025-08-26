@@ -2,13 +2,13 @@
 
 import PropertyCard from "@/components/PropertyCard";
 import SearchInput from "@/components/SearchInput";
-import Spinner from "@/components/Spinner";
 import { PropertyType } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
-import { useQuery } from "@tanstack/react-query";
+import PropertyCardSkeleton from "@/components/PropertyCardsSkeleton";
 
 export default function SearchResultPage() {
   const searchParams = useSearchParams();
@@ -34,7 +34,13 @@ export default function SearchResultPage() {
     queryFn: fetchProperties,
   });
 
-  if (isLoading) return <Spinner />;
+  if (isLoading)
+    return (
+      <div>
+        <SearchInput />
+        <PropertyCardSkeleton />
+      </div>
+    );
   if (error) return <div>An error occurred: {(error as Error).message}</div>;
 
   return (

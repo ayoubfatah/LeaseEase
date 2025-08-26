@@ -8,7 +8,7 @@ import UnreadMessagesCount from "./UnreadMessagesCount";
 export default function Notifications() {
   const router = useRouter();
   return (
-    <Link href="/messages" className="relative group">
+    <Link href="/messages" className="relative group translate-y-[4px] mr-1">
       <button
         onClick={() => router.push("/messages")}
         type="button"

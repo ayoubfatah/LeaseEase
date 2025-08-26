@@ -1,15 +1,35 @@
 "use client";
+import profileDefault from "@/public/images/profile.png";
+import { useQuery } from "@tanstack/react-query";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
-import profileDefault from "@/public/images/profile.png";
-import { signOut, useSession } from "next-auth/react";
-import { FaBell } from "react-icons/fa";
+import NotificationDropDown from "./NotificationDropDown";
 import Notifications from "./Notifications";
+
+async function fetchMessages() {
+  const response = await fetch("/api/messages");
+  if (!response.ok) {
+    throw new Error("Failed to fetch properties");
+  }
+  return response.json();
+}
+
 export default function ProfileDropDown() {
   const { data: session } = useSession();
   const [isRightSideMenuOpen, setIsRightSideMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const {
+    data: messages,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["messages"],
+    queryFn: () => fetchMessages(),
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -40,7 +60,7 @@ export default function ProfileDropDown() {
     <div className="relative ml-3 flex justify-center gap-3 ">
       {/* notification */}
 
-      <Notifications />
+      <NotificationDropDown />
 
       <button
         onClick={toggleMenu}
@@ -66,7 +86,7 @@ export default function ProfileDropDown() {
       {isRightSideMenuOpen && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-[25px] z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-gray-800 ring-opacity-5 focus:outline-none"
+          className="absolute right-0 top-[30px] z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-gray-800 ring-opacity-5 focus:outline-none"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="user-menu-button"

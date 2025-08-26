@@ -75,7 +75,7 @@ const PropertyHeaderImage = ({
                     <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-2">
                       <User className="h-5 w-5 text-white" />
                     </div>
-                    <div>
+                    <div className="self-end">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">
                         Property Owner
                       </p>
@@ -83,13 +83,6 @@ const PropertyHeaderImage = ({
                         {property?.seller_info?.name || "Owner Name"}
                       </p>
                     </div>
-                  </div>
-
-                  {/* Rating (if available) */}
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">4.8</span>
-                    <span className="text-xs text-gray-500">(24 reviews)</span>
                   </div>
                 </div>
               </div>

@@ -1,12 +1,11 @@
 "use client";
 import { PropertyType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import React, { useState } from "react";
-import PropertyCard from "./PropertyCard";
-import Spinner from "./Spinner";
+import { useState } from "react";
 import Pagination from "./Pagination";
+import PropertyCard from "./PropertyCard";
+import PropertyCardSkeleton from "./PropertyCardsSkeleton";
 
-// Separate the fetch function for cleaner code
 const fetchProperties = async (page: number, pageSize: number) => {
   const response = await fetch(
     `/api/properties?page=${page}&pageSize=${pageSize}`
@@ -19,28 +18,30 @@ const fetchProperties = async (page: number, pageSize: number) => {
 
 export default function Properties() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize] = useState(12);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["properties", page, pageSize],
     queryFn: () => fetchProperties(page, pageSize),
-    enabled: typeof window !== "undefined", // only run on client
+    enabled: typeof window !== "undefined",
   });
+
+  const properties = data?.properties ?? [];
+  const totalItems = data?.total ?? 0;
+
+  const isReallyLoading = isLoading || (!data && !isError); // 👈 this prevents the flash
 
   function handlePageChange(newPage: number) {
     setPage(newPage);
   }
 
-  if (isLoading) {
-    return <Spinner />;
+  if (isReallyLoading) {
+    return <PropertyCardSkeleton />;
   }
 
   if (isError) {
     return <p>{error.message}</p>;
   }
-
-  const properties = data?.properties || [];
-  const totalItems = data?.total || 0;
 
   return (
     <section className="px-4 py-6">
