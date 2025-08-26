@@ -1,5 +1,6 @@
 "use client";
 import PropertyCard from "@/components/PropertyCard";
+import PropertyCardSkeleton from "@/components/PropertyCardsSkeleton";
 import Spinner from "@/components/Spinner";
 import { PropertyType } from "@/types/types";
 import React, { useEffect, useState } from "react";
@@ -26,7 +27,7 @@ export default function SavedPropertiesPage() {
     }
     fetchSavedProperties();
   }, []);
-  if (loading) return <Spinner />;
+  if (loading) return <PropertyCardSkeleton />;
   return (
     <section className="px-4 py-6">
       <div className="container-xl lg:container m-auto px-4 py-6">
