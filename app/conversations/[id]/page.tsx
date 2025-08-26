@@ -28,9 +28,7 @@ export default function ConversationThreadPage({
   });
 
   const [text, setText] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
   const currentUserId = (session?.user as any)?.id;
 
   useEffect(() => {
@@ -78,11 +76,9 @@ export default function ConversationThreadPage({
       });
 
       if (res.ok) {
-        // Refetch to get the real message from server
         await queryClient.invalidateQueries({ queryKey: ["conversation", id] });
         await queryClient.invalidateQueries({ queryKey: ["conversations"] });
       } else {
-        // Remove optimistic message on error
         queryClient.setQueryData(["conversation", id], (oldData: any) => {
           if (!oldData) return oldData;
           return {
@@ -95,7 +91,6 @@ export default function ConversationThreadPage({
         console.error("Failed to send message");
       }
     } catch (error) {
-      // Remove optimistic message on error
       queryClient.setQueryData(["conversation", id], (oldData: any) => {
         if (!oldData) return oldData;
         return {
@@ -139,7 +134,7 @@ export default function ConversationThreadPage({
     );
   }
 
-  // Last index for current and other user
+  // Last message index for both users
   const lastCurrentUserIndex = data.messages
     ?.map((msg: any, i: number) => ({ ...msg, i }))
     .filter((msg: any) => msg.sender._id === currentUserId)
@@ -151,9 +146,10 @@ export default function ConversationThreadPage({
     .slice(-1)[0]?.i;
 
   return (
-    <section className="bg-gray-50 min-h-screen">
-      <div className="container m-auto py-6 max-w-4xl">
-        <div className="bg-white shadow-lg rounded-lg border m-4 md:m-0 flex flex-col h-[calc(100vh-8rem)]">
+    <section className="bg-gray-50 mt-4 flex justify-center items-center">
+      <div className="container mx-auto  max-w-4xl">
+        <div className="bg-white shadow-lg rounded-lg border m-4 md:m-0 flex flex-col h-[650px]">
+          {/* Header */}
           <div className="px-6 py-4 border-b bg-white rounded-t-lg">
             <h1 className="text-xl font-semibold">Conversation</h1>
             {data?.conversation?.property?.name && (
@@ -163,7 +159,8 @@ export default function ConversationThreadPage({
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-0 flex flex-col justify-end">
+          {/* Messages container */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-0 flex flex-col">
             {data?.messages?.map((m: any, index: number) => {
               const isCurrentUser = m.sender._id === currentUserId;
               const isLastCurrent = index === lastCurrentUserIndex;
@@ -215,7 +212,7 @@ export default function ConversationThreadPage({
                                 isLastCurrent ? "rounded-br-[0px]" : ""
                               }`
                             : `bg-gray-100 text-gray-900 ${
-                                isLastOther ? "rounded-tl-[0] " : ""
+                                isLastOther ? "rounded-tl-[0]" : ""
                               }`
                         }`}
                       >
@@ -237,6 +234,7 @@ export default function ConversationThreadPage({
             <div ref={bottomRef} />
           </div>
 
+          {/* Input form */}
           <div className="p-4 border-t bg-gray-50 rounded-b-lg">
             <form onSubmit={handleSend} className="flex gap-3">
               <Input
