@@ -15,6 +15,7 @@ export default function FeaturedPropertyCard({
   const { name, type, location, beds, baths, square_feet, rates, images } =
     property ?? {};
 
+  console.log(property, "property ");
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50/50">
       <div className="relative overflow-hidden">
@@ -22,7 +23,7 @@ export default function FeaturedPropertyCard({
           <Image
             width={500}
             height={300}
-            src={property.images[0] || "/placeholder.svg"}
+            src={images[0] || "/placeholder.svg"}
             alt={`${name} - ${type} in ${location.city}`}
             className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
           />

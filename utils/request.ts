@@ -5,6 +5,7 @@ const apiDomain = process.env.NEXT_PUBLIC_API_DOMAIN || null;
 // fetch all properties
 async function fetchProperties() {
   try {
+    console.log("happening");
     if (!apiDomain) {
       console.log("No API domain configured, returning empty array");
       return { properties: [] };

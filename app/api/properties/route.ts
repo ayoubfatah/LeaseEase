@@ -10,7 +10,7 @@ export const GET = async (request: NextRequest) => {
     await connectedDB();
 
     const page = Number(request.nextUrl.searchParams.get("page")) || 1;
-    const pageSize = Number(request.nextUrl.searchParams.get("pageSize")) || 3;
+    const pageSize = Number(request.nextUrl.searchParams.get("pageSize"));
     const skip = (page - 1) * pageSize;
 
     let total = 0;

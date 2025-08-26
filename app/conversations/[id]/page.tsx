@@ -69,6 +69,7 @@ export default function ConversationThreadPage({
       </section>
     );
   }
+
   if (isError) {
     return (
       <section className="bg-gray-50 min-h-screen">
@@ -85,8 +86,14 @@ export default function ConversationThreadPage({
     );
   }
 
+  // Find the index of the last message sent by the other user
+  const lastOtherMessageIndex = data?.messages
+    ?.map((m: any, idx: number) => ({ ...m, idx }))
+    .filter((m: any) => m.sender._id !== currentUserId)
+    .slice(-1)[0]?.idx;
+
   return (
-    <section className="bg-gray-50 ">
+    <section className="bg-gray-50 min-h-screen">
       <div className="container m-auto py-6 max-w-4xl">
         <div className="bg-white shadow-lg rounded-lg border m-4 md:m-0 flex flex-col h-[calc(100vh-8rem)]">
           <div className="px-6 py-4 border-b bg-white rounded-t-lg">
@@ -99,9 +106,10 @@ export default function ConversationThreadPage({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {data?.messages?.map((m: any) => {
+            {data?.messages?.map((m: any, index: number) => {
               const isCurrentUser = m.sender._id === currentUserId;
-              const isRead = m.readBy?.includes(currentUserId);
+              const showAvatar =
+                !isCurrentUser && index === lastOtherMessageIndex;
 
               return (
                 <div
@@ -115,7 +123,7 @@ export default function ConversationThreadPage({
                       isCurrentUser ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
-                    {!isCurrentUser && (
+                    {!isCurrentUser && showAvatar && (
                       <Avatar className="w-8 h-8 mt-1">
                         <AvatarImage
                           src={m.sender?.image || "/placeholder.svg"}
@@ -132,13 +140,11 @@ export default function ConversationThreadPage({
                       }`}
                     >
                       <div
-                        className={`text-xs text-gray-500 mb-1 px-1 ${
+                        className={`text-xs text-gray-500  px-1 ${
                           isCurrentUser ? "text-right" : "text-left"
                         }`}
                       >
-                        {isCurrentUser
-                          ? "You"
-                          : m.sender?.username || "Unknown"}
+                        {isCurrentUser ? "" : m.sender?.username || "Unknown"}
                       </div>
 
                       <div
@@ -149,20 +155,19 @@ export default function ConversationThreadPage({
                         }`}
                       >
                         <div className="text-sm leading-relaxed">{m.body}</div>
-                      </div>
-
-                      <div
-                        className={`text-xs text-gray-400 mt-1 px-1 flex items-center gap-1 ${
-                          isCurrentUser ? "flex-row-reverse" : "flex-row"
-                        }`}
-                      >
-                        <span>
+                        <span className="text-[10px] text-black/50">
                           {new Date(m.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </span>
                       </div>
+
+                      <div
+                        className={`text-xs text-gray-400 mt-1 px-1 flex items-center gap-1 ${
+                          isCurrentUser ? "flex-row-reverse" : "flex-row"
+                        }`}
+                      ></div>
                     </div>
                   </div>
                 </div>

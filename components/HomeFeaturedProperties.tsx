@@ -14,10 +14,9 @@ export default async function HomeFeaturedProperties() {
     data = { properties: [] };
   }
 
-  const featuredProperties: PropertyType[] =
-    data?.properties
-      ?.filter((prop: PropertyType) => prop.is_featured === true)
-      .slice(0, 3) ?? [];
+  const featuredProperties: PropertyType[] = data?.properties
+    .filter((p: PropertyType) => p.is_featured)
+    .slice(0, 3);
 
   return (
     <section className="px-4 py-6 bg-slate-100">

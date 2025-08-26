@@ -15,5 +15,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/properties/add", "/profile", "/properties/saved", "/messages"],
+  matcher: [
+    "/properties/add",
+    "/profile",
+    "/properties/saved",
+    "/messages",
+    "/conversations",
+    "/conversations/:path*",
+  ],
 };

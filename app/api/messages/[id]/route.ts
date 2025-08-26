@@ -26,7 +26,6 @@ export const PUT = async (
     }
 
     const { userId } = sessionUser;
-    console.log("User ID:", userId);
 
     const message = await Messages.findById(id);
 

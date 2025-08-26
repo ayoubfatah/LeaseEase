@@ -30,21 +30,24 @@ export const GET = async (
         status: 404,
       });
     }
-    if (!conversation.participants.some((p: any) => p._id.toString() === userId)) {
+    if (
+      !conversation.participants.some((p: any) => p._id.toString() === userId)
+    ) {
       return new Response(JSON.stringify({ message: "Forbidden" }), {
         status: 403,
       });
     }
 
-    const messages = await ConversationMessage.find({ conversation: conversationId })
+    const messages = await ConversationMessage.find({
+      conversation: conversationId,
+    })
       .sort({ createdAt: 1 })
-      .populate("sender", "name email")
-      .populate("recipient", "name email");
+      .populate("sender")
+      .populate("recipient");
 
-    return new Response(
-      JSON.stringify({ conversation, messages }),
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ conversation, messages }), {
+      status: 200,
+    });
   } catch (err) {
     return new Response(JSON.stringify({ message: "Server error" }), {
       status: 500,
@@ -69,9 +72,12 @@ export const POST = async (
     const conversationId = params.id;
     const { body } = await req.json();
     if (!body || typeof body !== "string" || !body.trim()) {
-      return new Response(JSON.stringify({ message: "Message body required" }), {
-        status: 400,
-      });
+      return new Response(
+        JSON.stringify({ message: "Message body required" }),
+        {
+          status: 400,
+        }
+      );
     }
 
     const conversation: any = await Conversation.findById(conversationId);
@@ -126,7 +132,11 @@ export const PUT = async (
     const conversationId = params.id;
 
     await ConversationMessage.updateMany(
-      { conversation: conversationId, recipient: userId, readBy: { $ne: userId } },
+      {
+        conversation: conversationId,
+        recipient: userId,
+        readBy: { $ne: userId },
+      },
       { $push: { readBy: userId } }
     );
 
@@ -137,5 +147,3 @@ export const PUT = async (
     });
   }
 };
-
-
