@@ -1,12 +1,12 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type React from "react";
-
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatRelativeTime } from "@/lib/utils";
 
 async function fetchThread(id: string) {
   const res = await fetch(`/api/conversations/${id}`);
@@ -28,6 +28,7 @@ export default function ConversationThreadPage({
   });
 
   const [text, setText] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const currentUserId = (session?.user as any)?.id;
@@ -44,15 +45,67 @@ export default function ConversationThreadPage({
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
-    const res = await fetch(`/api/conversations/${id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: text }),
+
+    const messageText = text.trim();
+    setText("");
+
+    // Create optimistic message
+    const optimisticMessage = {
+      _id: `temp-${Date.now()}`,
+      body: messageText,
+      sender: {
+        _id: currentUserId,
+        username: session?.user?.name || "You",
+        image: session?.user?.image,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    // Optimistically update the cache
+    queryClient.setQueryData(["conversation", id], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        messages: [...(oldData.messages || []), optimisticMessage],
+      };
     });
-    if (res.ok) {
-      setText("");
-      await queryClient.invalidateQueries({ queryKey: ["conversation", id] });
-      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+    try {
+      const res = await fetch(`/api/conversations/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: messageText }),
+      });
+
+      if (res.ok) {
+        // Refetch to get the real message from server
+        await queryClient.invalidateQueries({ queryKey: ["conversation", id] });
+        await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      } else {
+        // Remove optimistic message on error
+        queryClient.setQueryData(["conversation", id], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            messages: oldData.messages.filter(
+              (msg: any) => msg._id !== optimisticMessage._id
+            ),
+          };
+        });
+        console.error("Failed to send message");
+      }
+    } catch (error) {
+      // Remove optimistic message on error
+      queryClient.setQueryData(["conversation", id], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          messages: oldData.messages.filter(
+            (msg: any) => msg._id !== optimisticMessage._id
+          ),
+        };
+      });
+      console.error("Error sending message:", error);
     }
   }
 
@@ -86,11 +139,16 @@ export default function ConversationThreadPage({
     );
   }
 
-  // Find the index of the last message sent by the other user
-  const lastOtherMessageIndex = data?.messages
-    ?.map((m: any, idx: number) => ({ ...m, idx }))
-    .filter((m: any) => m.sender._id !== currentUserId)
-    .slice(-1)[0]?.idx;
+  // Last index for current and other user
+  const lastCurrentUserIndex = data.messages
+    ?.map((msg: any, i: number) => ({ ...msg, i }))
+    .filter((msg: any) => msg.sender._id === currentUserId)
+    .slice(-1)[0]?.i;
+
+  const lastOtherUserIndex = data.messages
+    ?.map((msg: any, i: number) => ({ ...msg, i }))
+    .filter((msg: any) => msg.sender._id !== currentUserId)
+    .slice(-1)[0]?.i;
 
   return (
     <section className="bg-gray-50 min-h-screen">
@@ -105,11 +163,12 @@ export default function ConversationThreadPage({
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-0 flex flex-col justify-end">
             {data?.messages?.map((m: any, index: number) => {
               const isCurrentUser = m.sender._id === currentUserId;
-              const showAvatar =
-                !isCurrentUser && index === lastOtherMessageIndex;
+              const isLastCurrent = index === lastCurrentUserIndex;
+              const isLastOther = index === lastOtherUserIndex;
+              const showDate = isLastCurrent || isLastOther;
 
               return (
                 <div
@@ -123,7 +182,7 @@ export default function ConversationThreadPage({
                       isCurrentUser ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
-                    {!isCurrentUser && showAvatar && (
+                    {!isCurrentUser && isLastOther && (
                       <Avatar className="w-8 h-8 mt-1">
                         <AvatarImage
                           src={m.sender?.image || "/placeholder.svg"}
@@ -135,39 +194,41 @@ export default function ConversationThreadPage({
                     )}
 
                     <div
-                      className={`flex flex-col ${
+                      className={`flex flex-col group ${
                         isCurrentUser ? "items-end" : "items-start"
-                      }`}
+                      } ${!isCurrentUser && !isLastOther ? "ml-[40px]" : ""}`}
                     >
                       <div
-                        className={`text-xs text-gray-500  px-1 ${
+                        className={`text-xs text-gray-500 px-1 ${
                           isCurrentUser ? "text-right" : "text-left"
                         }`}
                       >
-                        {isCurrentUser ? "" : m.sender?.username || "Unknown"}
+                        {!isCurrentUser && isLastOther
+                          ? m.sender?.username
+                          : ""}
                       </div>
 
                       <div
-                        className={`rounded-2xl px-4 py-2 max-w-full break-words ${
+                        className={`relative rounded-2xl max-w-full break-words my-[1.5px] ${
                           isCurrentUser
-                            ? "bg-blue-500 text-white rounded-br-md"
-                            : "bg-gray-100 text-gray-900 rounded-bl-md"
+                            ? `bg-blue-500 text-white ${
+                                isLastCurrent ? "rounded-br-[0px]" : ""
+                              }`
+                            : `bg-gray-100 text-gray-900 ${
+                                isLastOther ? "rounded-tl-[0] " : ""
+                              }`
                         }`}
                       >
-                        <div className="text-sm leading-relaxed">{m.body}</div>
-                        <span className="text-[10px] text-black/50">
-                          {new Date(m.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                        <div className="text-sm leading-relaxed flex flex-col">
+                          <span className="py-2 px-4">{m.body}</span>
+                        </div>
                       </div>
 
-                      <div
-                        className={`text-xs text-gray-400 mt-1 px-1 flex items-center gap-1 ${
-                          isCurrentUser ? "flex-row-reverse" : "flex-row"
-                        }`}
-                      ></div>
+                      {showDate && (
+                        <span className="text-[10px] px-1 mt-1 text-gray-400">
+                          {formatRelativeTime(m.createdAt)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
