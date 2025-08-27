@@ -1,61 +1,79 @@
 "use client";
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import logo from "@/public/images/logo-white.png";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSession, getProviders } from "next-auth/react";
-
+import { FaGoogle } from "react-icons/fa";
 import MobileMenu from "./MobileMenu";
 import ProfileDropDown from "./ProfileDropDown";
 import RightSideMenu from "./RightSideMenu";
 import Login from "./Login";
 import DesktopMenu from "./DesktopMenu";
+import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession, getProviders } from "next-auth/react";
+import Spinner from "./Spinner";
+
+// Cache providers globally to avoid refetching
+let cachedProviders: any = null;
+let providersPromise: any = null;
+
+const getProvidersOnce = async () => {
+  if (cachedProviders) {
+    return cachedProviders;
+  }
+
+  if (!providersPromise) {
+    providersPromise = getProviders()
+      .then((providers) => {
+        cachedProviders = providers;
+        return providers;
+      })
+      .catch((error) => {
+        console.error("Error fetching providers:", error);
+        providersPromise = null; // Reset promise on error so it can retry
+        return null;
+      });
+  }
+
+  return providersPromise;
+};
 
 export default function NavBar() {
+  const [providers, setProviders] = useState(cachedProviders);
   const { data: session, status } = useSession();
-  const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // UseRef to cache providers so they don’t refetch every render
-  const providersRef = useRef<any>(null);
-  const [providers, setProviders] = useState<any>(null);
 
   useEffect(() => {
-    const fetchProviders = async () => {
-      if (providersRef.current) {
-        setProviders(providersRef.current);
-        return;
-      }
+    if (!providers) {
+      getProvidersOnce().then(setProviders);
+    }
+  }, [providers]);
 
-      try {
-        const res = await getProviders();
-        providersRef.current = res;
-        setProviders(res);
-      } catch (error) {
-        console.error("Error fetching providers:", error);
-      }
-    };
+  const pathname = usePathname();
 
-    fetchProviders();
-  }, []);
+  // Memoize pages array to prevent unnecessary re-renders
+  const pages = useMemo(() => {
+    let basePages = [
+      { name: "Home", href: "/" },
+      { name: "Properties", href: "/properties" },
+    ];
 
-  let pages = [
-    { name: "Home", href: "/" },
-    { name: "Properties", href: "/properties" },
-  ];
+    if (session) {
+      basePages = basePages.concat([
+        { name: "Add Property", href: "/properties/add" },
+      ]);
+    }
 
-  if (status === "authenticated") {
-    pages.push({ name: "Add Property", href: "/properties/add" });
-    pages.push({ name: "Conversations", href: "/conversations" });
-  }
+    return basePages;
+  }, [session]);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // No loading spinner - just render the navbar normally
 
   return (
     <nav className="bg-slate-800 border-b border-slate-500">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-[70px] items-center justify-between">
-          {/* Mobile hamburger button */}
           <div className="absolute inset-y-0 left-0 flex items-center md:hidden">
             <button
               type="button"
@@ -65,7 +83,7 @@ export default function NavBar() {
               aria-expanded="false"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <span className="absolute -inset-0.5" />
+              <span className="absolute -inset-0.5"></span>
               <span className="sr-only">Open main menu</span>
               <svg
                 className="block h-6 w-6 text-white"
@@ -84,7 +102,6 @@ export default function NavBar() {
             </button>
           </div>
 
-          {/* Logo + Desktop Menu */}
           <div className="flex flex-1 items-center justify-center md:items-stretch md:justify-start">
             <Link className="flex flex-shrink-0 items-center" href="/">
               <Image
@@ -98,17 +115,15 @@ export default function NavBar() {
                 LeaseEase
               </span>
             </Link>
-
+            {/* Desktop Menu Hidden below md screens */}
             <DesktopMenu pages={pages} pathname={pathname} />
           </div>
 
-          {/* Auth Area */}
-          {status === "unauthenticated" && <Login providers={providers} />}
-          {status === "authenticated" && <ProfileDropDown />}
+          {!session && <Login providers={providers} />}
+          {session && <ProfileDropDown />}
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <MobileMenu
           providers={providers}
