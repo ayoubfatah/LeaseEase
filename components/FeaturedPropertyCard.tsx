@@ -1,11 +1,11 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { PropertyType } from "@/types/types";
 import Image from "next/image";
+import Link from "next/link";
 import { FaBed, FaMoneyBill, FaRulerCombined, FaShower } from "react-icons/fa";
 import { FaLocationDot } from "react-icons/fa6";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 export default function FeaturedPropertyCard({
   property,
@@ -105,12 +105,12 @@ export default function FeaturedPropertyCard({
               {location.city}, {location.state}
             </span>
           </div>
-          <Button
-            size="sm"
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-6 transition-all duration-200"
+          <Link
+            href={`properties/${property._id}`}
+            className="bg-slate-900 rounded-md text-[14px] hover:bg-slate-800 text-white font-medium px-4 py-1 transition-all duration-200"
           >
             Details
-          </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

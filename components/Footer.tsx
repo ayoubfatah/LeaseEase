@@ -10,10 +10,8 @@ export default function Footer() {
           <h1>LeaseEase</h1>
         </div>
         <div className="flex flex-wrap justify-center md:justify-start mb-4 md:mb-0">
-          <ul className="flex space-x-4">
-            <li>
-              <Link href="/properties">Properties</Link>
-            </li>
+          <ul className="flex items-center justify-between text-center space-x-4">
+            <li></li>
           </ul>
         </div>
         <div>
