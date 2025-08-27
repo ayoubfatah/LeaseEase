@@ -25,10 +25,10 @@ export default function Messages({ message }: any) {
         setIsRead(read);
         setUnreadCount((prev) => (read ? prev - 1 : prev + 1));
         if (read) {
-          toast.success("Message marked as read");
+          toast.success("Notification marked as read");
         }
         if (!read) {
-          toast.success("Message marked as unread");
+          toast.success("Notification marked as unread");
         }
       }
     } catch (error) {

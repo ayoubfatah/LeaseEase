@@ -1,12 +1,15 @@
 "use client";
 import { PropertyType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Pagination from "./Pagination";
 import PropertyCard from "./PropertyCard";
 import PropertyCardSkeleton from "./PropertyCardsSkeleton";
 
 const fetchProperties = async (page: number, pageSize: number) => {
+  if (typeof window === "undefined") {
+    throw new Error("Not in browser environment");
+  }
   const response = await fetch(
     `/api/properties?page=${page}&pageSize=${pageSize}`
   );
@@ -19,11 +22,16 @@ const fetchProperties = async (page: number, pageSize: number) => {
 export default function Properties() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
+  const [isClient, setIsClient] = useState(false); // ✅ flag to avoid SSR fetch
+
+  useEffect(() => {
+    setIsClient(true); // only true in browser
+  }, []);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["properties", page, pageSize],
     queryFn: () => fetchProperties(page, pageSize),
-    enabled: typeof window !== "undefined",
+    enabled: isClient,
   });
 
   const properties = data?.properties ?? [];
