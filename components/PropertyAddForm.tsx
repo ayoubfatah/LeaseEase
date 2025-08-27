@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Home, MapPin, Bed, DollarSign, User, Upload } from "lucide-react";
+import { toast } from "react-toastify";
+import { redirect } from "next/navigation";
 
 // Zod schema based on your Mongoose schema
 const propertySchema = z.object({
@@ -64,6 +66,7 @@ const PropertyAddForm = () => {
     handleSubmit,
     control,
     watch,
+    reset,
     setValue,
     formState: { errors },
   } = useForm<PropertyFormData>({
@@ -118,72 +121,56 @@ const PropertyAddForm = () => {
       setValue("images", fileArray);
     }
   };
-
   const onSubmit = async (data: PropertyFormData) => {
     setLoading(true);
     try {
-      // Create FormData for file upload
       const formData = new FormData();
-
-      // Add all form fields
+      // Append all fields (same as before)...
       formData.append("name", data.name);
       formData.append("type", data.type);
       if (data.description) formData.append("description", data.description);
-
-      // Location
       if (data.location.street)
         formData.append("location.street", data.location.street);
       formData.append("location.city", data.location.city);
       formData.append("location.state", data.location.state);
       if (data.location.zipcode)
         formData.append("location.zipcode", data.location.zipcode);
-
-      // Property specs
       formData.append("beds", data.beds.toString());
       formData.append("baths", data.baths.toString());
       formData.append("square_feet", data.square_feet.toString());
-
-      // Amenities
-      (data.amenities ?? []).forEach((amenity) => {
-        formData.append("amenities", amenity);
-      });
-
-      // Rates
+      (data.amenities ?? []).forEach((amenity) =>
+        formData.append("amenities", amenity)
+      );
       if (data.rates.nightly)
         formData.append("rates.nightly", data.rates.nightly.toString());
       if (data.rates.weekly)
         formData.append("rates.weekly", data.rates.weekly.toString());
       if (data.rates.monthly)
         formData.append("rates.monthly", data.rates.monthly.toString());
-
-      // Seller info
       formData.append("seller_info.name", data.seller_info.name);
       formData.append("seller_info.email", data.seller_info.email);
       if (data.seller_info.phone)
         formData.append("seller_info.phone", data.seller_info.phone);
+      if (data.images)
+        data.images.forEach((image) => formData.append("images", image));
 
-      // Images
-      if (data.images) {
-        data.images.forEach((image) => {
-          formData.append("images", image);
-        });
-      }
-
-      // Submit to API
       const response = await fetch("/api/properties", {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
-        // Handle success - redirect or show success message
-        console.log("Property created successfully");
+        const createdProperty = await response.json(); // Assuming API returns created property with `id` or `slug`
+        toast.success("Property created successfully!");
+        reset(); // Reset the form
+        redirect(`/properties/${createdProperty.id}`); // Redirect to the property page
       } else {
-        // Handle error
+        toast.error("Failed to create property");
         console.error("Failed to create property");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }

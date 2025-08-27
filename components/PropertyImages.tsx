@@ -1,32 +1,31 @@
-import { width } from "@mui/system";
 import Image from "next/image";
 import React from "react";
 import { Gallery, Item } from "react-photoswipe-gallery";
+
 export default function PropertyImages({ images }: { images: string[] }) {
-  console.log(images);
   return (
     <Gallery>
-      <section className=" bg-slate-100 p-4 ">
+      <section className="bg-slate-100 p-4">
         <div className="container mx-auto">
           {images.length === 1 ? (
             <Item
-              original={images.at(0)}
-              thumbnail={images.at(0)}
+              original={images[0]}
+              thumbnail={images[0]}
               width="1000"
               height="600"
             >
               {({ ref, open }: any) => (
-                <Image
-                  ref={ref}
-                  onClick={open}
-                  alt="propertyImage"
-                  className="object-cover h-[400px] mx-auto rounded-xl"
-                  src={images[0]}
-                  width={1800}
-                  height={400}
-                  priority={true}
-                  style={{ height: "auto" }}
-                />
+                <div className="relative w-full h-[400px] mx-auto rounded-xl overflow-hidden">
+                  <Image
+                    ref={ref}
+                    onClick={open}
+                    alt="propertyImage"
+                    src={images[0]}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               )}
             </Item>
           ) : (
@@ -36,7 +35,7 @@ export default function PropertyImages({ images }: { images: string[] }) {
                   key={i}
                   className={`${
                     images.length === 3 && i === 2 ? "col-span-2" : "col-span-1"
-                  }`}
+                  } relative h-[400px] rounded-xl overflow-hidden`}
                 >
                   <Item
                     original={img}
@@ -49,12 +48,10 @@ export default function PropertyImages({ images }: { images: string[] }) {
                         ref={ref}
                         onClick={open}
                         alt={`propertyImage-${i}`}
-                        className="object-cover h-[400px] w-full rounded-xl"
                         src={img}
-                        width={900}
-                        height={400}
-                        priority={true}
-                        style={{ height: "auto" }}
+                        fill
+                        className="object-cover"
+                        priority
                       />
                     )}
                   </Item>

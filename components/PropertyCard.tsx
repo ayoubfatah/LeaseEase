@@ -8,6 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// Helper function to truncate title to first 3 words
+export function truncateTitle(title: string, wordLimit = 3) {
+  const words = title.split(" ");
+  if (words.length <= wordLimit) return title;
+  return words.slice(0, wordLimit).join(" ") + "...";
+}
+
 export default function PropertyCard({ property }: { property: PropertyType }) {
   const router = useRouter();
 
@@ -33,7 +40,7 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
             quality={75}
             width={500}
             height={375}
-            src={property.images[0] || "/placeholder.svg"}
+            src={images[0] || "/placeholder.svg"}
             alt={name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
@@ -64,8 +71,8 @@ export default function PropertyCard({ property }: { property: PropertyType }) {
           <Badge variant="outline" className="mb-2 text-xs font-medium">
             {type}
           </Badge>
-          <h3 className="text-xl font-semibold text-foreground line-clamp-2 leading-tight">
-            {name}
+          <h3 className="text-xl font-semibold text-foreground leading-tight">
+            {truncateTitle(name, 3)}
           </h3>
         </div>
 

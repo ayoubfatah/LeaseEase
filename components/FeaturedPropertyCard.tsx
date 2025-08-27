@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaBed, FaMoneyBill, FaRulerCombined, FaShower } from "react-icons/fa";
 import { FaLocationDot } from "react-icons/fa6";
+import { truncateTitle } from "./PropertyCard";
 
 export default function FeaturedPropertyCard({
   property,
@@ -53,7 +54,7 @@ export default function FeaturedPropertyCard({
             {type}
           </Badge>
           <h3 className="text-xl font-bold text-foreground leading-tight line-clamp-2">
-            {name}
+            {truncateTitle(name, 3)}
           </h3>
         </div>
 
