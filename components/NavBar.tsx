@@ -48,6 +48,7 @@ export default function NavBar() {
 
   if (status === "authenticated") {
     pages.push({ name: "Add Property", href: "/properties/add" });
+    pages.push({ name: "Conversations", href: "/conversations" });
   }
 
   return (
