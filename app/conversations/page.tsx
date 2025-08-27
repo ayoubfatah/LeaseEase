@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Conversation, User } from "@/types/ConversationType"; // update path if needed
 import { useSession } from "next-auth/react"; // if you're using next-auth
+import { Skeleton } from "@/components/ui/skeleton";
 
 async function fetchConversations(): Promise<Conversation[]> {
   const res = await fetch("/api/conversations");
@@ -28,8 +29,11 @@ export default function ConversationsPage() {
   if (isLoading) {
     return (
       <section>
-        <div className="container m-auto py-10 max-w-5xl">
-          <div className="bg-white px-6 py-8">Loading...</div>
+        <div className="container m-auto py-10 max-w-6xl">
+          <div className="bg-white px-6 py-8 mb-4 m-4 md:m-0">
+            <h1 className="text-3xl font-bold mb-4">Conversations:</h1>
+            <Skeleton className="w-full h-[80px]" />
+          </div>
         </div>
       </section>
     );

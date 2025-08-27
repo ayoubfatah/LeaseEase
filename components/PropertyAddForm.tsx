@@ -1,10 +1,7 @@
 "use client";
 import type React from "react";
 
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,10 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,10 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Home, MapPin, Bed, DollarSign, User, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Bed, DollarSign, Home, MapPin, Upload, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { z } from "zod";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Zod schema based on your Mongoose schema

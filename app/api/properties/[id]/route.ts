@@ -3,6 +3,7 @@ import Property from "@/models/Property";
 import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
 import { private_safeAlpha } from "@mui/system";
+import Conversation from "@/models/Conversation";
 
 //GET api/properties/id
 export const GET = async (request: any, { params }: { params: any }) => {
@@ -40,6 +41,7 @@ export const DELETE = async (request: any, { params }: { params: any }) => {
     await property.deleteOne();
     // Cascade delete messages linked to this property to avoid orphaned messages
     await Messages.deleteMany({ property: propertyId });
+    await Conversation.deleteMany({ property: propertyId });
     return new Response("property deleted  ", { status: 200 });
   } catch (error) {
     console.log(error);
