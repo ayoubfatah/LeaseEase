@@ -126,12 +126,11 @@ export const POST = async (request: NextRequest) => {
 
     // Redirect
     console.log("[POST /api/properties] Redirecting to property page...");
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`,
-      },
-    });
+    console.log("[POST /api/properties] Returning property JSON...");
+    return NextResponse.json(
+      { success: true, property: newProperty },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[POST /api/properties] Error processing form data:", error);
     return NextResponse.json(

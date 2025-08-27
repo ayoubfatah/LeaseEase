@@ -25,8 +25,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Home, MapPin, Bed, DollarSign, User, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { redirect } from "next/navigation";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Zod schema based on your Mongoose schema
 const propertySchema = z.object({
@@ -44,29 +45,60 @@ const propertySchema = z.object({
   square_feet: z.number().min(1, "Square feet must be greater than 0"),
   amenities: z.array(z.string()).default([]),
   rates: z.object({
-    nightly: z.number().min(0).optional().nullable(),
-    weekly: z.number().min(0).optional().nullable(),
-    monthly: z.number().min(0).optional().nullable(),
+    nightly: z
+      .union([z.string(), z.number()])
+      .transform((val) =>
+        val === "" || val === undefined ? null : Number(val)
+      )
+      .nullable()
+      .optional(),
+    weekly: z
+      .union([z.string(), z.number()])
+      .transform((val) =>
+        val === "" || val === undefined ? null : Number(val)
+      )
+      .nullable()
+      .optional(),
+    monthly: z
+      .union([z.string(), z.number()])
+      .transform((val) =>
+        val === "" || val === undefined ? null : Number(val)
+      )
+      .nullable()
+      .optional(),
   }),
+
   seller_info: z.object({
     name: z.string().min(1, "Contact name is required"),
     email: z.string().email("Valid email address is required"),
     phone: z.string().optional(),
   }),
-  images: z.array(z.instanceof(File)).optional(),
+  images: z
+    .array(
+      z
+        .instanceof(File)
+        .refine((file) => file.size <= MAX_FILE_SIZE, {
+          message: "Each file must be less than 5MB.",
+        })
+        .refine((file) => file.type.startsWith("image/"), {
+          message: "Only image files are allowed.",
+        })
+    )
+    .min(1, { message: "Please upload at least one image." }),
 });
 
 type PropertyFormData = z.input<typeof propertySchema>;
 
 const PropertyAddForm = () => {
   const [loading, setLoading] = useState(false);
+  const route = useRouter();
 
   const {
     register,
     handleSubmit,
     control,
-    watch,
     reset,
+    watch,
     setValue,
     formState: { errors },
   } = useForm<PropertyFormData>({
@@ -121,58 +153,82 @@ const PropertyAddForm = () => {
       setValue("images", fileArray);
     }
   };
+
   const onSubmit = async (data: PropertyFormData) => {
     setLoading(true);
     try {
+      // Create FormData for file upload
       const formData = new FormData();
-      // Append all fields (same as before)...
+
+      // Add all form fields
       formData.append("name", data.name);
       formData.append("type", data.type);
       if (data.description) formData.append("description", data.description);
+
+      // Location
       if (data.location.street)
         formData.append("location.street", data.location.street);
       formData.append("location.city", data.location.city);
       formData.append("location.state", data.location.state);
       if (data.location.zipcode)
         formData.append("location.zipcode", data.location.zipcode);
+
+      // Property specs
       formData.append("beds", data.beds.toString());
       formData.append("baths", data.baths.toString());
       formData.append("square_feet", data.square_feet.toString());
-      (data.amenities ?? []).forEach((amenity) =>
-        formData.append("amenities", amenity)
-      );
+
+      // Amenities
+      (data.amenities ?? []).forEach((amenity) => {
+        formData.append("amenities", amenity);
+      });
+
+      // Rates
       if (data.rates.nightly)
         formData.append("rates.nightly", data.rates.nightly.toString());
       if (data.rates.weekly)
         formData.append("rates.weekly", data.rates.weekly.toString());
       if (data.rates.monthly)
         formData.append("rates.monthly", data.rates.monthly.toString());
+
+      // Seller info
       formData.append("seller_info.name", data.seller_info.name);
       formData.append("seller_info.email", data.seller_info.email);
       if (data.seller_info.phone)
         formData.append("seller_info.phone", data.seller_info.phone);
-      if (data.images)
-        data.images.forEach((image) => formData.append("images", image));
 
+      // Images
+      if (data.images) {
+        data.images.forEach((image) => {
+          formData.append("images", image);
+        });
+      }
+
+      console.log("submiting");
+      // Submit to API
       const response = await fetch("/api/properties", {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
-        const createdProperty = await response.json(); // Assuming API returns created property with `id` or `slug`
-        toast.success("Property created successfully!");
-        reset(); // Reset the form
-        redirect(`/properties/${createdProperty.id}`); // Redirect to the property page
+        const data = await response.json();
+
+        reset();
+        route.push(`/properties/${data?.property._id}`);
+        // Handle success - redirect or show success message
+        toast.success("Property created successfully");
       } else {
-        toast.error("Failed to create property");
+        // Handle error
         console.error("Failed to create property");
+        toast.error("Failed to create property");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Something went wrong");
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   };
 
@@ -463,10 +519,7 @@ const PropertyAddForm = () => {
                   type="number"
                   min="0"
                   placeholder="150"
-                  {...register("rates.nightly", {
-                    valueAsNumber: true,
-                    setValueAs: (v) => (v === "" ? null : v),
-                  })}
+                  {...register("rates.nightly")}
                 />
                 {errors.rates?.nightly && (
                   <p className="text-sm text-red-500">
@@ -481,10 +534,7 @@ const PropertyAddForm = () => {
                   type="number"
                   min="0"
                   placeholder="1000"
-                  {...register("rates.weekly", {
-                    valueAsNumber: true,
-                    setValueAs: (v) => (v === "" ? null : v),
-                  })}
+                  {...register("rates.weekly")}
                 />
                 {errors.rates?.weekly && (
                   <p className="text-sm text-red-500">
@@ -499,10 +549,7 @@ const PropertyAddForm = () => {
                   type="number"
                   min="0"
                   placeholder="3500"
-                  {...register("rates.monthly", {
-                    valueAsNumber: true,
-                    setValueAs: (v) => (v === "" ? null : v),
-                  })}
+                  {...register("rates.monthly")}
                 />
                 {errors.rates?.monthly && (
                   <p className="text-sm text-red-500">
