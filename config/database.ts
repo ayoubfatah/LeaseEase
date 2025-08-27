@@ -17,8 +17,6 @@ const getCachedConnection = () => {
 const connectDB = async () => {
   const cached = getCachedConnection();
 
-  console.log("ENV keys:", Object.keys(process.env));
-  console.log("MONGODB_URI:", process.env.MONGODB_URI);
   if (cached.conn) {
     console.log("MongoDB is already connected...");
     return cached.conn;

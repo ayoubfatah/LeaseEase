@@ -22,11 +22,14 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReactQueryProvider from "./ReactQueryProvider";
 
-const queryClient = new QueryClient();
 export const metadata = {
   title: "Leaseease",
   description: "Leaseease",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
+
 export default function RootLayout({
   children,
 }: {
@@ -37,6 +40,9 @@ export default function RootLayout({
       <LeaseProvider>
         <AuthProvider>
           <html lang="en">
+            <head>
+              <link rel="icon" href="/favicon.ico" />
+            </head>
             <body className="flex flex-col min-h-screen">
               <NavBar />
               <main className="flex-1">{children}</main>
