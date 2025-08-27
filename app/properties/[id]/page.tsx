@@ -13,6 +13,7 @@ import PropertyImages from "@/components/PropertyImages";
 import BookmarkButton from "@/components/BookmarkButton";
 import SharePropertyButton from "@/components/SharePropertyButton";
 import ContactForm from "@/components/ContactForm";
+import PropertyPageSkeleton from "@/components/PropertyPageSkeleton";
 
 export default function PropertyPage() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function PropertyPage() {
     enabled: !!id,
   });
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <PropertyPageSkeleton />;
 
   if (error) return <div>Error loading property</div>;
 

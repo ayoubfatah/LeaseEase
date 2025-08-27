@@ -60,7 +60,6 @@ export default function Page() {
       }
     } catch (error) {
       toast.error("Failed to delete property");
-
       console.log(error);
     }
   }
