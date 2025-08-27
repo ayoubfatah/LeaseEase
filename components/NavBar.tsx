@@ -1,17 +1,14 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
-import Image from "next/image";
 import logo from "@/public/images/logo-white.png";
+import { getProviders, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
-import { FaGoogle } from "react-icons/fa";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import DesktopMenu from "./DesktopMenu";
+import Login from "./Login";
 import MobileMenu from "./MobileMenu";
 import ProfileDropDown from "./ProfileDropDown";
-import RightSideMenu from "./RightSideMenu";
-import Login from "./Login";
-import DesktopMenu from "./DesktopMenu";
-import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession, getProviders } from "next-auth/react";
-import Spinner from "./Spinner";
 
 // Cache providers globally to avoid refetching
 let cachedProviders: any = null;
@@ -60,6 +57,7 @@ export default function NavBar() {
     if (session) {
       basePages = basePages.concat([
         { name: "Add Property", href: "/properties/add" },
+        { name: "Conversations", href: "/conversations" },
       ]);
     }
 
