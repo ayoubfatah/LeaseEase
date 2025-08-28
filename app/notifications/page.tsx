@@ -1,51 +1,39 @@
 "use client";
 import Messages from "@/components/Messages";
+import NotificationSkeleton from "@/components/ui/NotificationSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetNotifications } from "@/reactQuery/useGetNotification";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 
-async function fetchMessages() {
-  const response = await fetch("/api/messages");
-  if (!response.ok) {
-    throw new Error("Failed to fetch properties");
-  }
-  return response.json();
-}
-
 export default function MessagesPage() {
-  function getUniqueMessages(messages: any) {
-    const uniqueMessagesMap = new Map();
+  const { notifications, isLoading } = useGetNotifications();
 
-    messages?.forEach((message: any) => {
-      const uniqueKey = `${message.sender._id}-${message.property._id}`;
-
-      // Add only if this sender-property combination hasn't been added yet
-      if (!uniqueMessagesMap.has(uniqueKey)) {
-        uniqueMessagesMap.set(uniqueKey, message);
-      }
-    });
-
-    return Array.from(uniqueMessagesMap.values());
+  if (isLoading) {
+    return (
+      <section className="">
+        <div className="container m-auto py-10 max-w-6xl">
+          <div className="bg-white px-6 py-8 mb-4  m-4 md:m-0">
+            <h1 className="text-3xl font-bold mb-4">Your Notifications : </h1>
+            <NotificationSkeleton />
+          </div>
+        </div>
+      </section>
+    );
   }
-  const {
-    data: messages,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["messages"],
-    queryFn: () => fetchMessages(),
-  });
-  console.log(messages, "messages");
-  const uniqueMessages = getUniqueMessages(messages);
-  console.log(uniqueMessages, "messages page");
+
   return (
     <section className="">
       <div className="container m-auto py-10 max-w-6xl">
         <div className="bg-white px-6 py-8 mb-4  m-4 md:m-0">
           <h1 className="text-3xl font-bold mb-4">Your Notifications : </h1>
-          {messages?.map((message: any, i: number) => {
-            return <Messages key={i} message={message} />;
-          })}
+          {notifications.length > 0 ? (
+            notifications?.map((message: any, i: number) => {
+              return <Messages key={notifications._id} message={message} />;
+            })
+          ) : (
+            <div>No Notifications Yet</div>
+          )}
         </div>
       </div>
     </section>

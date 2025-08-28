@@ -1,6 +1,7 @@
 import connectDB from "@/config/database";
 import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,8 @@ export const PUT = async (
     }
 
     message.read = !message.read;
-    console.log("Message read status toggled:", message.read);
+
+    revalidateTag("notifications");
 
     await message.save();
     console.log("Message updated and saved");

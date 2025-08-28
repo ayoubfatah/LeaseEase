@@ -28,6 +28,22 @@ export default function ContactForm({ property }: { property: PropertyType }) {
         return;
       }
 
+      const { id, name, email, phone } = session.user as {
+        id: string;
+        name?: string;
+        email?: string;
+        phone?: string;
+      };
+
+      const data = {
+        sender: id,
+        recipient: property.owner,
+        property: property._id,
+        name: name || "",
+        email: email || "",
+        phone: phone || "",
+        message,
+      };
       const participantId = property.owner;
       const propertyId = property._id;
 
@@ -59,6 +75,13 @@ export default function ContactForm({ property }: { property: PropertyType }) {
           body: JSON.stringify({ body: message }),
         });
 
+        const res = await fetch("/api/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
         if (messageRes.status === 201) {
           toast.success("Your message has been sent!");
           setWasSubmitted(true);

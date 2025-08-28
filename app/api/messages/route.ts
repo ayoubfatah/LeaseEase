@@ -1,8 +1,7 @@
 import connectDB from "@/config/database";
 import Messages from "@/models/Messages";
 import { getSessionUser } from "@/utils/getSessionUser";
-import { TableBody } from "@mui/material";
-import { connect } from "http2";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 // POST /api/messages
@@ -58,8 +57,8 @@ export const POST = async (request: any) => {
       phone,
     });
 
-    console.log("New message object:", newMessage);
     await newMessage.save();
+    revalidateTag("notifications");
 
     console.log("Message saved successfully");
     return new Response(JSON.stringify({ message: "Message sent" }), {

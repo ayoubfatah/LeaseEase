@@ -1,61 +1,48 @@
 "use client";
+
 import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 import { format } from "date-fns";
-import { useState } from "react";
 import { toast } from "react-toastify";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, Trash2, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useOptToggleReadStatus } from "@/reactQuery/useOptToggleReadStatus";
+import { useOptDeleteNotification } from "@/reactQuery/useOptDeleteNotification";
 
 export default function Messages({ message }: any) {
-  const [isRead, setIsRead] = useState(message.read);
-  const [isDeleted, setIsDeleted] = useState(false);
   const { setUnreadCount } = useLeaseContext();
+  const { mutate: toggleReadStatus } = useOptToggleReadStatus();
+  const { mutate: deleteMessage } = useOptDeleteNotification();
 
-  async function handleReadClick() {
-    try {
-      const res = await fetch(`/api/messages/${message._id}`, {
-        method: "PUT",
-      });
-      if (res.status === 200) {
-        // we only want message
-        const { read } = await res.json();
-        setIsRead(read);
-        setUnreadCount((prev) => (read ? prev - 1 : prev + 1));
-        if (read) {
-          toast.success("Notification marked as read");
-        }
-        if (!read) {
-          toast.success("Notification marked as unread");
-        }
-      }
-    } catch (error) {
-      console.error("Error:", error);
+  const isUnread = !message.read;
+
+  function handleReadClick() {
+    toggleReadStatus({
+      id: message._id,
+      newReadState: !message.read,
+    });
+
+    // Update unread count manually
+    setUnreadCount((prev) => (!message.read ? prev - 1 : prev + 1));
+  }
+
+  function handleDeleteMsg() {
+    deleteMessage(message._id);
+
+    // Only decrease unreadCount if it was unread
+    if (!message.read) {
+      setUnreadCount((prev) => prev - 1);
     }
   }
-  async function handleDeleteMsg() {
-    try {
-      const res = await fetch(`/api/messages/${message._id}`, {
-        method: "DELETE",
-      });
-      if (res.status === 200) {
-        setIsDeleted(true);
-        setUnreadCount((prev) => prev - 1);
-        toast.success("Message Deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
-  if (isDeleted) return null;
 
   return (
     <Card
-      className={`transition-all duration-200 my-4 ${
-        !isRead ? "border-l-4 border-l-blue-500 bg-blue-50/20" : ""
-      }`}
+      className={cn(
+        "transition-all duration-200 my-4",
+        isUnread && "border-l-4 border-l-blue-500 bg-blue-50/20"
+      )}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
@@ -67,7 +54,7 @@ export default function Messages({ message }: any) {
               {format(new Date(message?.updatedAt), "MMM d, yyyy")}
             </p>
           </div>
-          {!isRead && (
+          {isUnread && (
             <Badge variant="secondary" className="text-xs">
               New
             </Badge>
@@ -108,22 +95,22 @@ export default function Messages({ message }: any) {
             variant="ghost"
             size="sm"
             className={cn("h-7 px-2 text-xs", {
-              "bg-green-400 text-white": isRead,
-              "bg-blue-500 text-white": !isRead,
+              "bg-green-400 text-white": !isUnread,
+              "bg-blue-500 text-white": isUnread,
             })}
           >
-            {isRead ? (
+            {!isUnread ? (
               <EyeOff className="h-3 w-3 mr-1" />
             ) : (
               <Eye className="h-3 w-3 mr-1" />
             )}
-            {isRead ? "Mark as New" : "Mark as Read"}
+            {!isUnread ? "Mark as New" : "Mark as Read"}
           </Button>
           <Button
             onClick={handleDeleteMsg}
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs bg-red-600 text-white "
+            className="h-7 px-2 text-xs bg-red-600 text-white"
           >
             <Trash2 className="h-3 w-3 mr-1" />
             Delete

@@ -67,7 +67,11 @@ export default function ConversationsPage() {
               );
 
               return (
-                <Link key={c._id} href={`/conversations/${c._id}`}>
+                <Link
+                  className="my-1"
+                  key={c._id}
+                  href={`/conversations/${c._id}`}
+                >
                   <Card className="hover:bg-gray-50">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">

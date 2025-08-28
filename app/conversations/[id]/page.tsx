@@ -25,6 +25,9 @@ export default function ConversationThreadPage({
   const { data, isLoading, isError } = useQuery({
     queryKey: ["conversation", id],
     queryFn: () => fetchThread(id),
+    refetchInterval: 3000,
+    staleTime: 0,
+    enabled: !!id,
   });
 
   const [text, setText] = useState("");

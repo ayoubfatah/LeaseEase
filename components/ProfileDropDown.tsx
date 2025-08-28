@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import NotificationDropDown from "./NotificationDropDown";
-import Notifications from "./Notifications";
 
 async function fetchMessages() {
   const response = await fetch("/api/messages");

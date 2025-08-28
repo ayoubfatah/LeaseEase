@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,13 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useGetNotifications } from "@/reactQuery/useGetNotification";
+import { useOptDeleteNotification } from "@/reactQuery/useOptDeleteNotification";
+import { useOptToggleReadStatus } from "@/reactQuery/useOptToggleReadStatus";
 import { format } from "date-fns";
 import { Eye, EyeOff, Mail, Phone, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FaBell } from "react-icons/fa";
-import { toast } from "react-toastify";
-import Link from "next/link";
 
 interface Message {
   _id: string;
@@ -38,46 +38,16 @@ function NotificationItem({
   onDelete,
 }: {
   message: Message;
-  onReadToggle: (messageId: string, isRead: boolean) => void;
-  onDelete: (messageId: string) => void;
+  onReadToggle: (id: string, isRead: boolean) => void;
+  onDelete: any;
 }) {
   const [isRead, setIsRead] = useState(message.read);
   const [isDeleted, setIsDeleted] = useState(false);
 
-  async function handleReadClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    try {
-      const res = await fetch(`/api/messages/${message._id}`, {
-        method: "PUT",
-      });
-      if (res.status === 200) {
-        const { read } = await res.json();
-        setIsRead(read);
-        onReadToggle(message._id, read);
-        toast.success(
-          read ? "Message marked as read" : "Message marked as unread"
-        );
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
-
-  async function handleDeleteMsg(e: React.MouseEvent) {
-    e.stopPropagation();
-    try {
-      const res = await fetch(`/api/messages/${message._id}`, {
-        method: "DELETE",
-      });
-      if (res.status === 200) {
-        setIsDeleted(true);
-        onDelete(message._id);
-        toast.success("Message deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
+  const handleClick = () => {
+    onReadToggle(message._id, isRead);
+    setIsRead((prev) => !prev);
+  };
 
   if (isDeleted) return null;
 
@@ -125,7 +95,7 @@ function NotificationItem({
 
       <div className="flex gap-1">
         <Button
-          onClick={handleReadClick}
+          onClick={handleClick}
           variant="ghost"
           size="sm"
           className={cn("h-6 px-2 text-xs", {
@@ -141,7 +111,7 @@ function NotificationItem({
           {isRead ? "Mark New" : "Mark Read"}
         </Button>
         <Button
-          onClick={handleDeleteMsg}
+          onClick={() => onDelete(message._id)}
           variant="ghost"
           size="sm"
           className="h-6 px-2 text-xs bg-red-100 text-red-700 hover:bg-red-200"
@@ -155,58 +125,37 @@ function NotificationItem({
 }
 
 export default function NotificationDropdown() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
   const { unreadCount, setUnreadCount } = useLeaseContext();
+  const { notifications = [], isLoading, isError } = useGetNotifications(); // <-- default fallback to []
+
+  const { mutate: toggleRead } = useOptToggleReadStatus();
+  const { mutate: deleteMessage } = useOptDeleteNotification();
 
   useEffect(() => {
-    if (!session) return;
-
-    async function fetchMessages() {
-      try {
-        // Fetch unread count
-        const unreadRes = await fetch("/api/messages/unread-msgs");
-        if (unreadRes.status === 200) {
-          const unreadData = await unreadRes.json();
-          setUnreadCount(unreadData.count);
-        }
-
-        // Fetch all messages (you may need to adjust this endpoint)
-        const messagesRes = await fetch("/api/messages");
-        if (messagesRes.status === 200) {
-          const messagesData = await messagesRes.json();
-          setMessages(messagesData);
-        }
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (notifications) {
+      const unread = notifications.filter((msg: any) => !msg.read).length;
+      setUnreadCount(unread);
     }
-
-    fetchMessages();
-  }, [session, setUnreadCount]);
-
-  const handleReadToggle = (messageId: string, isRead: boolean) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg._id === messageId ? { ...msg, read: isRead } : msg
-      )
-    );
-    setUnreadCount((prev) => (isRead ? prev - 1 : prev + 1));
-  };
-
-  const handleDelete = (messageId: string) => {
-    const deletedMessage = messages.find((msg) => msg._id === messageId);
-    setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
-
-    if (deletedMessage && !deletedMessage.read) {
-      setUnreadCount((prev) => prev - 1);
-    }
-  };
+  }, [notifications]);
 
   if (isLoading) return null;
+  if (isError) {
+    console.error("Failed to load notifications");
+    return null;
+  }
+
+  function handleReadToggle(messageId: string, isRead: boolean) {
+    toggleRead({ id: messageId, newReadState: !isRead });
+    setUnreadCount((prev) => (!isRead ? prev - 1 : prev + 1));
+  }
+
+  function handleDelete(_id: string, wasUnread: boolean) {
+    deleteMessage(_id);
+    if (wasUnread) {
+      setUnreadCount((prev) => prev - 1);
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -241,14 +190,14 @@ export default function NotificationDropdown() {
           </Link>
         </div>
         <div className="max-h-80 overflow-y-auto">
-          {messages.filter((m) => !m.read).length === 0 ? (
+          {notifications.filter((m: any) => !m.read).length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              No messages yet
+              No Notifications yet
             </div>
           ) : (
-            messages
-              .filter((m) => !m.read)
-              .map((message) => (
+            notifications
+              .filter((m: any) => !m.read)
+              .map((message: any) => (
                 <NotificationItem
                   key={message._id}
                   message={message}

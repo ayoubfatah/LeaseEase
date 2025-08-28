@@ -20,6 +20,7 @@ export const config = {
     "/profile",
     "/properties/saved",
     "/messages",
+    "/notifications",
     "/conversations",
     "/conversations/:path*",
   ],
