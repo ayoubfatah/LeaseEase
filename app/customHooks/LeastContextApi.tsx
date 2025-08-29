@@ -11,6 +11,8 @@ import {
 interface LeaseContextType {
   unreadCount: number;
   setUnreadCount: Dispatch<SetStateAction<number>>;
+  setUnReadMsgs: Dispatch<SetStateAction<number>>;
+  unReadMsgs: number;
 }
 
 const LeaseContext = createContext<LeaseContextType | undefined>(undefined);
@@ -21,9 +23,12 @@ interface LeaseProviderProps {
 
 function LeaseProvider({ children }: LeaseProviderProps) {
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unReadMsgs, setUnReadMsgs] = useState(0);
 
   return (
-    <LeaseContext.Provider value={{ unreadCount, setUnreadCount }}>
+    <LeaseContext.Provider
+      value={{ unreadCount, setUnreadCount, setUnReadMsgs, unReadMsgs }}
+    >
       {children}
     </LeaseContext.Provider>
   );

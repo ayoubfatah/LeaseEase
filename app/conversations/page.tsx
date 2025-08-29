@@ -8,6 +8,8 @@ import Image from "next/image";
 import { Conversation, User } from "@/types/ConversationType"; // update path if needed
 import { useSession } from "next-auth/react"; // if you're using next-auth
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCallback, useEffect, useMemo } from "react";
+import { useLeaseContext } from "../customHooks/LeastContextApi";
 
 async function fetchConversations(): Promise<Conversation[]> {
   const res = await fetch("/api/conversations");
@@ -17,14 +19,20 @@ async function fetchConversations(): Promise<Conversation[]> {
 
 export default function ConversationsPage() {
   const { data: session } = useSession();
+  const { setUnReadMsgs } = useLeaseContext();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["conversations"],
+    staleTime: 0,
+    refetchInterval: 3000,
     queryFn: fetchConversations,
   });
 
-  const currentUserId = (session?.user as any)?.id;
+  useEffect(() => {
+    const unreadCount = data?.reduce((acc, c) => acc + c.unreadCount, 0) ?? 0;
+    setUnReadMsgs(unreadCount);
+  }, [data, setUnReadMsgs]);
 
-  console.log(currentUserId, "currentUser id");
+  const currentUserId = (session?.user as any)?.id;
 
   if (isLoading) {
     return (
@@ -54,7 +62,7 @@ export default function ConversationsPage() {
       <div className="container m-auto py-10 max-w-6xl">
         <div className="bg-white px-6 py-8 mb-4 m-4 md:m-0">
           <h1 className="text-3xl font-bold mb-4">Conversations:</h1>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2">
             {data?.map((c: Conversation) => {
               // Find the other participant (not current user)
               const otherUser = c.participants.find(
@@ -65,13 +73,10 @@ export default function ConversationsPage() {
               const sender = c.participants.find(
                 (p) => p._id === c.lastMessage?.sender
               );
+              console.log(sender, otherUser, "other an dsender");
 
               return (
-                <Link
-                  className="my-1"
-                  key={c._id}
-                  href={`/conversations/${c._id}`}
-                >
+                <Link className="" key={c._id} href={`/conversations/${c._id}`}>
                   <Card className="hover:bg-gray-50">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -98,7 +103,7 @@ export default function ConversationsPage() {
                               <span className="font-semibold">
                                 {currentUserId === sender?._id
                                   ? "You"
-                                  : sender?.username}
+                                  : otherUser?.username}
                                 :
                               </span>{" "}
                               {c.lastMessage.body}

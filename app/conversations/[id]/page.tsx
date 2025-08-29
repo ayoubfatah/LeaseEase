@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/utils";
+import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 
 async function fetchThread(id: string) {
   const res = await fetch(`/api/conversations/${id}`);
@@ -34,6 +35,8 @@ export default function ConversationThreadPage({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const currentUserId = (session?.user as any)?.id;
 
+  const { setUnReadMsgs } = useLeaseContext();
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data]);
@@ -41,6 +44,7 @@ export default function ConversationThreadPage({
   useEffect(() => {
     // mark as read on mount
     fetch(`/api/conversations/${id}`, { method: "PUT" });
+    setUnReadMsgs(0);
   }, [id]);
 
   async function handleSend(e: React.FormEvent) {
