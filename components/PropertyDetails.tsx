@@ -1,14 +1,53 @@
-import { PropertyType } from "@/types/types";
+import type React from "react";
+import type { PropertyType } from "@/types/types";
 import {
   FaBed,
   FaBath,
   FaRulerCombined,
   FaTimes,
-  FaCheck,
   FaMapMarker,
 } from "react-icons/fa";
+import {
+  Wifi,
+  ChefHat,
+  WashingMachine,
+  Car,
+  Waves,
+  Bath,
+  Shield,
+  Accessibility,
+  Building,
+  Utensils,
+  Dumbbell,
+  Snowflake,
+  Home,
+  Tv,
+  Coffee,
+  Check,
+} from "lucide-react";
 import PropertyMap from "./PropertyMap";
-// import PropertyMap from "@/components/PropertyMap";
+
+const getAmenityIcon = (amenity: string): React.JSX.Element => {
+  const iconMap: { [key: string]: React.JSX.Element } = {
+    Wifi: <Wifi className="w-[25px]  h-[25px] " />,
+    "Full kitchen": <ChefHat className="w-[25px]  h-[25px] " />,
+    "Washer & Dryer": <WashingMachine className="w-[25px]  h-[25px] " />,
+    "Free Parking": <Car className="w-[25px]  h-[25px] " />,
+    "Swimming Pool": <Waves className="w-[25px]  h-[25px] " />,
+    "Hot Tub": <Bath className="w-[25px]  h-[25px] " />,
+    "24/7 Security": <Shield className="w-[25px]  h-[25px] " />,
+    "Wheelchair Accessible": <Accessibility className="w-[25px]  h-[25px] " />,
+    "Elevator Access": <Building className="w-[25px]  h-[25px] " />,
+    Dishwasher: <Utensils className="w-[25px]  h-[25px] " />,
+    "Gym/Fitness Center": <Dumbbell className="w-[25px]  h-[25px] " />,
+    "Air Conditioning": <Snowflake className="w-[25px]  h-[25px] " />,
+    "Balcony/Patio": <Home className="w-[25px]  h-[25px] " />,
+    "Smart TV": <Tv className="w-[25px]  h-[25px] " />,
+    "Coffee Maker": <Coffee className="w-[25px]  h-[25px] " />,
+  };
+
+  return iconMap[amenity] || <Check className="w-[25px]  h-[25px] " />;
+};
 
 const PropertyDetails = ({ property }: { property: PropertyType }) => {
   return (
@@ -86,14 +125,16 @@ const PropertyDetails = ({ property }: { property: PropertyType }) => {
 
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  ">
           {property.amenities.map((amenity: any, index: number) => (
-            <li key={index}>
-              <FaCheck className="inline-block text-green-600 mr-2" /> {amenity}
+            <li key={index} className="flex items-center mb-2">
+              <span className="inline-block  mr-2 text-black/60">
+                {getAmenityIcon(amenity)}
+              </span>{" "}
+              <span className="text-black/60"> {amenity}</span>
             </li>
           ))}
         </ul>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-        {/* <PropertyMap property={property} /> */}
         <PropertyMap property={property} />
       </div>
     </main>
