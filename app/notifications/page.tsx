@@ -1,10 +1,7 @@
 "use client";
 import Messages from "@/components/Messages";
 import NotificationSkeleton from "@/components/ui/NotificationSkeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useGetNotifications } from "@/reactQuery/useGetNotification";
-import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
 
 export default function MessagesPage() {
   const { notifications, isLoading } = useGetNotifications();

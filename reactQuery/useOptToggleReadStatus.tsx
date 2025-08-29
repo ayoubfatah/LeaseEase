@@ -41,11 +41,7 @@ export function useOptToggleReadStatus() {
       queryClient.setQueryData(["notifications"], context?.previousData);
       toast.error("Failed to update Notification");
     },
-    onSuccess: ({ read }) => {
-      toast.success(
-        read ? "Notification marked as read" : "Notification marked as unread"
-      );
-    },
+
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },

@@ -30,9 +30,7 @@ export function useOptDeleteNotification() {
         queryClient.setQueryData(["notifications"], context.previous);
       }
     },
-    onSuccess: () => {
-      toast.success("Notification deleted successfully");
-    },
+
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },

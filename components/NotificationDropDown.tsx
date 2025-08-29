@@ -3,6 +3,7 @@
 import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +95,15 @@ function NotificationItem({
       </div>
 
       <div className="flex gap-1">
+        <Link
+          href={"/conversations"}
+          className={cn(
+            "h-6 px-2 text-xs bg-green-100 text-green-700 hover:bg-green-200 flex items-center rounded-md"
+          )}
+        >
+          <Eye className="h-3 w-3 " />
+          View
+        </Link>
         <Button
           onClick={handleClick}
           variant="ghost"

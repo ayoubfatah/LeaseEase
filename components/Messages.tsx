@@ -1,15 +1,14 @@
 "use client";
 
 import { useLeaseContext } from "@/app/customHooks/LeastContextApi";
-import { format } from "date-fns";
-import { toast } from "react-toastify";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Trash2, Eye, EyeOff } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useOptToggleReadStatus } from "@/reactQuery/useOptToggleReadStatus";
 import { useOptDeleteNotification } from "@/reactQuery/useOptDeleteNotification";
+import { useOptToggleReadStatus } from "@/reactQuery/useOptToggleReadStatus";
+import { format } from "date-fns";
+import { Eye, EyeOff, Mail, Phone, Trash2 } from "lucide-react";
 
 export default function Messages({ message }: any) {
   const { setUnreadCount } = useLeaseContext();
